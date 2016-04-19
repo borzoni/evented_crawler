@@ -1,0 +1,23 @@
+.container
+  h1 Краулеры сайтов
+
+  table.table.table-striped
+    thead
+      tr
+        th Название
+        th Базовый урл
+        th Периодичность 
+        th
+        th
+    tbody
+      - @crawlers.each do |crawler|
+        tr
+          td = crawler.name
+          td = crawler.url
+          td = crawler.periodicity
+          td = link_to 'Перейти', edit_crawler_path(crawler)
+          td = link_to 'Удалить', crawler, data: {:confirm => 'Точно?'}, :method => :delete
+
+  br
+
+  = link_to 'Создать новый', new_crawler_path, class: "btn btn-primary"
