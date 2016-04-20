@@ -10,7 +10,7 @@ default: &default
   host: localhost
   username: crawlers_user
   password: 12345
-  port: 5432
+  port: 5433
   pool: 5
   timeout: 5000
   
