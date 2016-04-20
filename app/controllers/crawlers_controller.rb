@@ -30,7 +30,7 @@ class CrawlersController < ApplicationController
     @crawler_form.process_params(crawler_params)
     respond_to do |format|
       if @crawler_form.save
-        SidekiqCrawler::Worker::CrawlerInstanceWorker.perform_async(@crawler_form.crawler.url, @crawler_form.crawler.selectors, @crawler_form.crawler.blacklist_url_patterns, @crawler_form.crawler.item_url_patterns)
+        start_cron_job @crawler_form.crawler
         format.html { redirect_to @crawler_form.crawler, notice: 'Crawler was successfully created.' }
         format.json { render :show, status: :created, location: @crawler_form.crawler }
       else
@@ -59,7 +59,7 @@ class CrawlersController < ApplicationController
     @crawler_form.process_params(crawler_params)
     respond_to do |format|
       if @crawler_form.save
-        SidekiqCrawler::Worker::CrawlerInstanceWorker.perform_async(@crawler_form.crawler.url, @crawler_form.crawler.selectors, @crawler_form.crawler.item_url_patterns, @crawler_form.crawler.blacklist_url_patterns)
+        start_cron_job @crawler_form.crawler
         format.html { redirect_to @crawler_form.crawler, notice: 'Crawler was successfully updated.' }
         format.json { render :show, status: :ok, location: @crawler_form.crawler }
       else
@@ -83,6 +83,18 @@ class CrawlersController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_crawler
       @crawler = Crawler.find(params[:id])
+    end
+    
+    def start_cron_job(crawler)
+      name = "CrawlerJob_#{crawler.id}"
+      args = [crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns]
+      Sidekiq::Cron::Job.destroy name
+      job = Sidekiq::Cron::Job.new(name: name, cron: crawler.periodicity, args: args, queue: 'crawlers', class: 'SidekiqCrawler::Worker::CrawlerInstanceWorker')
+      if job.valid?
+        job.save
+      else
+        puts "CRON SIDEKIQ: #{job.errors}"
+      end  
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

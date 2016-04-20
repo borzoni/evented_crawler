@@ -1,4 +1,5 @@
 require 'sidekiq'
+require 'sidekiq/cron'
 require_relative  '../evented_crawler'
 module SidekiqCrawler
   module Worker

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160414174517) do
+ActiveRecord::Schema.define(version: 20160420080430) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -23,7 +23,7 @@ ActiveRecord::Schema.define(version: 20160414174517) do
     t.hstore   "selectors",                           null: false
     t.string   "name",                                null: false
     t.string   "url",                                 null: false
-    t.integer  "periodicity",                         null: false
+    t.string   "periodicity",                         null: false
     t.string   "item_url_patterns",                   null: false, array: true
     t.string   "blacklist_url_patterns", default: [],              array: true
   end

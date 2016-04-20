@@ -44,7 +44,7 @@ module SidekiqCrawler
         when  :item_name, :item_brand, :item_desc, :item_main_img, :item_sizes_scale, :item_characteristics
           result[k] = res.first.text 
         when :item_price
-          result[k] = res.first.text.try(:to_i)  
+          result[k] = res.first.text.to_i  
         when  :item_outer_category, :item_sizes, :item_colors, :item_composition, :item_imgs
           temp_ar = []
           res.each do |r|
