@@ -22,10 +22,9 @@ module SidekiqCrawler
     def parse
       result = {}
       @settings.each do |k, v|
-        result[k] = nil
         temp = JSON.parse(v)
         next if temp['selector_text'] == ''
-        
+        result[k] = nil
         req = temp['req']
         text = temp['selector_text']
         eval_flag = false

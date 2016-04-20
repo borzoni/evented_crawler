@@ -7,7 +7,7 @@ set :repo_url, 'crawlers_user@162.243.104.209:/home/crawlers_user/www/clothes_cr
 set :passenger_restart_with_touch, true
 
 set :linked_files, fetch(:linked_files, []).push('config/database.yml').push('config/secrets.yml')
-set :linked_dirs, %w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
+set :linked_dirs, %w{log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
 
 namespace :deploy do
 
