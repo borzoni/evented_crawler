@@ -49,7 +49,7 @@ class CrawlersController < ApplicationController
   rescue SidekiqCrawler::CrawlerCardError => e
     render :json => {error: e.message}  
   rescue => e
-    render :json => {error: "Bad inputs"}    
+    render :json => {error: "Bad input: #{e.message} "}    
   end
 
   # PATCH/PUT /crawlers/1

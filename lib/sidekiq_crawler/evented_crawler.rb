@@ -38,17 +38,13 @@ module SidekiqCrawler
       false      
     end
 
-    # Find links within the document.
     def get_inner_links(root, content, base, depth)
-        # This is the host we want to crawl within.
         host = base.host
-        # Load the document into Nokogiri.
         doc = Nokogiri::HTML(content)
 
         # Find all <a> elements.
         doc.css('a').each do |link|
             begin
-                # Parse the href attribute, then remove the portion after '#'
                 url = URI.parse(link['href'])
                 url.fragment = nil
             rescue => e
@@ -58,17 +54,13 @@ module SidekiqCrawler
             if url.relative?
               url = base.merge(url) 
             end  
-            # First check whether we've seen this link before or it is blacklisted
+            
             unless @links_todo.include? url.to_s or @links_found.include? url.to_s or url_blacklisted?(url.to_s)
 
-                # For an absolute case, things are easy.
                 if url.host == host
                     @links_todo.push url.to_s 
                 end  
                 issue_more_connections(base, depth)                                       
-
-                # Spawn more concurrent connections.
-                # Anything above 50 was rude.
             end
         end
     end
@@ -83,20 +75,17 @@ module SidekiqCrawler
       end
     end
 
-    # Create a connection and its callback.
     def make_connection(url, base=nil, depth=0)
         # Set the base for the first run.
         base ||= URI.parse(url)
         begin
-            # Make the request.
             conn_opts = {:connect_timeout => 60}
             req = EventMachine::HttpRequest.new(url, conn_opts).get :head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html"}
+            #request in progress
             @connections += 1
             req.errback{|er| @er << er; @connections -= 1}
 
-            # We've visited the page now, so it is added to the links found.
             @links_found.add(url) 
-            # This request is ongoing.
 
             # Callback to be executed when the request is finished.
             req.callback do
@@ -104,7 +93,6 @@ module SidekiqCrawler
                   # This request is finished.
                   @connections -= 1
 
-                  # Print some info.
                   links, duration = @links_found.size, Time.now - @start_time 
                   puts "Cnn:#{@connections} Td:#{@links_todo.size} Fnd:#{links} T:#{duration} Rt:#{links/duration} Fnd/s"
                   
@@ -144,12 +132,7 @@ module SidekiqCrawler
     def go
       EM.run do
        EM.kqueue  
-        
-          
-          # Just for keeping track of rate.
           @start_time = Time.now
-
-          # Make the very first connection
           make_connection(@url)
       end
     end      

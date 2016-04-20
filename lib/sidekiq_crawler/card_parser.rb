@@ -34,37 +34,31 @@ module SidekiqCrawler
         end
         begin
           res = apply_selectors(@page, text, eval_flag) 
-        rescue
-          raise SidekiqCrawler::CrawlerCardError , "selector expression invalid" 
+        rescue => e
+          raise SidekiqCrawler::CrawlerCardError , "selector expression invalid #{text} #{e.message}" 
         end
         raise SidekiqCrawler::CrawlerCardError , "required selector not found" if res.empty? and req=="true"
         next if res.empty?
-        
-        case k
-        when  :item_name, :item_brand, :item_desc, :item_main_img, :item_sizes_scale, :item_characteristics
-          result[k] = res.first.text 
-        when :item_price
-          result[k] = res.first.text.to_i  
-        when  :item_outer_category, :item_sizes, :item_colors, :item_composition, :item_imgs
-          temp_ar = []
-          res.each do |r|
-            temp_ar << r.text 
-          end
-           result[k] = temp_ar  
-        when :item_availability
-          result[k] = res || (!res.empty?)
-        end  
+        result[k] = res
       end
       result
     end
     
     private
-    def apply_selectors(page,selector, eval_flag)
-      if eval_flag
-        return eval(selector)
+    def normalize_results(input)
+      return input if input.instance_of? String
+      if input.instance_of?(Nokogiri::XML::Node) || input.instance_of?(Nokogiri::XML::NodeSet)
+        return input.text
+      elsif input.instance_of?(Array)
+        return input.map{|e| normalize_results(e)}
       else
-        page.css(selector)
-      end    
+        return input  
+      end      
+    end
+    
+    def apply_selectors(page,selector, eval_flag)
+      eval_flag ? result= eval(selector) : result = page.css(selector)
+      normalize_results(result)   
     end
 
   end

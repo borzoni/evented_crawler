@@ -33,7 +33,7 @@ $(document).on 'ready', (e) ->
                   found_count = 1
                   if typeIsArray v
                     found_count = v.length
-                  found_text = "(#{found_count})Найдено"  
+                  found_text = "(#{found_count})Найдено - #{v}"  
                 else
                   found_text = "Не найдено"  
                     
