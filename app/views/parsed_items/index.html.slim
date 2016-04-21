@@ -1,0 +1,38 @@
+.container
+  h1 Результаты парсинга
+
+  table.table.table-striped
+    thead
+      tr
+        th Название
+        th Урл
+        th Цена
+        th Брэнд
+        th Описание
+        th Категории
+        th Размеры
+        th Размерная сетка
+        th Цвета
+        th Состав
+        th Характеристики
+        th Главное изображение
+        th Изображения
+        th Доступность
+    tbody
+      - @parsed_items.each do |p|
+        tr
+          td = p.item_name
+          td = p.url
+          td = p.item_price
+          td = p.item_brand
+          td = p.item_desc
+          td = p.item_outer_category
+          td = p.item_sizes
+          td = p.item_sizes_scale
+          td = p.item_colors
+          td = p.item_composition
+          td = p.item_characteristics
+          td = p.item_main_img
+          td = p.item_imgs
+          td = p.item_availability
+               

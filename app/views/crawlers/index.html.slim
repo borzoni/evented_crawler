@@ -7,7 +7,7 @@
         th Название
         th Базовый урл
         th Периодичность 
-        th
+        th Результаты
         th
     tbody
       - @crawlers.each do |crawler|
@@ -15,6 +15,7 @@
           td = crawler.name
           td = crawler.url
           td = crawler.periodicity
+          td = link_to 'Посмотреть', crawler_parsed_items_path(crawler), class: "btn btn-primary"
           td = link_to 'Перейти', edit_crawler_path(crawler)
           td = link_to 'Удалить', crawler, data: {:confirm => 'Точно?'}, :method => :delete
 

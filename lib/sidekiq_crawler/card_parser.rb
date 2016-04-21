@@ -46,7 +46,8 @@ module SidekiqCrawler
     
     private
     def normalize_results(input)
-      return input if (input.instance_of? String) || ([true, false].include? input)
+      return normalize_str(input) if (input.instance_of? String) 
+      return input if  ([true, false].include? input)
       if input.instance_of?(Nokogiri::XML::Node) || input.instance_of?(Nokogiri::XML::NodeSet)
         return input.text
       elsif input.instance_of?(Array)
@@ -54,6 +55,10 @@ module SidekiqCrawler
       else
         return input  
       end      
+    end
+    
+    def normalize_str(str)
+      str.strip.gsub(/\s+/, " ")
     end
     
     def apply_selectors(page,selector, eval_flag)

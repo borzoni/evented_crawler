@@ -13,8 +13,8 @@ module SidekiqCrawler
           :host     => "localhost",
           :username => "crawlers_user",
           :password => "12345",
-          :database => "cloth_crawlers",
-          :port => 5432
+          :database => "dev_cloth_crawlers",
+          :port => 5433
       )
 
 
@@ -25,8 +25,9 @@ module SidekiqCrawler
   class EventedCrawler
     include EM::Protocols
     
-    def initialize(url, selectors,blacklist_url_patterns, item_url_patterns )
+    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns )
       @url = url
+      @crawler_id = crawler_id
       @selectors = selectors
       @blacklisted = blacklist_url_patterns
       @card_url_pattern = item_url_patterns
@@ -116,7 +117,8 @@ module SidekiqCrawler
                       parser = SidekiqCrawler::CardParser.new(url, @selectors)
                       parser.set_page(req.response)
                       results = parser.parse
-                      Item.create(results.merge({:url => url, :domain_url => base}))
+                      item = Item.find_or_create_by(url: url, crawler_id: @crawler_id)
+                      item.update(results.merge({:url => url, :domain_url => base}))
                       puts "#{url} saved"
                     rescue => e
                       puts e.message

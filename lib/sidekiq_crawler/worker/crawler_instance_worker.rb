@@ -6,8 +6,8 @@ module SidekiqCrawler
     class CrawlerInstanceWorker
       include Sidekiq::Worker
 
-      def perform(url, selectors, blacklist_url_patterns, item_url_patterns)
-        c = SidekiqCrawler::EventedCrawler.new(url, selectors,blacklist_url_patterns, item_url_patterns)
+      def perform(crawler_id, url, selectors, blacklist_url_patterns, item_url_patterns)
+        c = SidekiqCrawler::EventedCrawler.new(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns)
         c.go
       end
     end

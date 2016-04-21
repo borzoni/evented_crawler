@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
   root 'crawlers#index'
-  resources :crawlers
+  resources :crawlers do
+    resources :parsed_items, :only => [:index]
+  end
   match "/test_crawler" => "crawlers#test", :via => :post
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160421103758) do
+ActiveRecord::Schema.define(version: 20160421134222) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -46,6 +46,11 @@ ActiveRecord::Schema.define(version: 20160421103758) do
     t.string   "domain_url"
     t.datetime "created_at",           null: false
     t.datetime "updated_at",           null: false
+    t.integer  "crawler_id"
   end
 
+  add_index "parsed_items", ["crawler_id"], name: "index_parsed_items_on_crawler_id", using: :btree
+  add_index "parsed_items", ["url"], name: "index_parsed_items_on_url", using: :btree
+
+  add_foreign_key "parsed_items", "crawlers"
 end
