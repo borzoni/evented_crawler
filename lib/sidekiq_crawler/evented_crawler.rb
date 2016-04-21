@@ -4,9 +4,24 @@ require 'nokogiri'
 require 'set'
 require 'open-uri'
 require 'time'
+require 'active_record'
 require_relative './card_parser'
 
 module SidekiqCrawler
+        ActiveRecord::Base.establish_connection(
+          :adapter  => "postgresql",
+          :host     => "localhost",
+          :username => "crawlers_user",
+          :password => "12345",
+          :database => "cloth_crawlers",
+          :port => 5432
+      )
+
+
+      class Item < ActiveRecord::Base
+        self.table_name = "parsed_items"
+      end
+      
   class EventedCrawler
     include EM::Protocols
     
@@ -89,7 +104,6 @@ module SidekiqCrawler
 
             # Callback to be executed when the request is finished.
             req.callback do
-              begin
                   # This request is finished.
                   @connections -= 1
 
@@ -97,15 +111,18 @@ module SidekiqCrawler
                   puts "Cnn:#{@connections} Td:#{@links_todo.size} Fnd:#{links} T:#{duration} Rt:#{links/duration} Fnd/s"
                   
                   if url_item_card?(url)
+                    puts "ITEM CARD"
                     begin
                       parser = SidekiqCrawler::CardParser.new(url, @selectors)
                       parser.set_page(req.response)
                       results = parser.parse
+                      Item.create(results.merge({:url => url, :domain_url => base}))
+                      puts "#{url} saved"
                     rescue => e
                       puts e.message
-                    end    
-                    #save them in defer call
-                  end
+                    end 
+                  end     
+
 
                   # Process the links in the response.
                   get_inner_links(url, req.response, base, depth)
@@ -113,11 +130,7 @@ module SidekiqCrawler
                   # If there are no more links to process and no ongoing connections, we can quit.
                   if @links_todo.empty? and @connections == 0
                       EM.stop
-                  end
-              rescue => e
-                EM.stop
-                raise e
-              end   
+                  end  
             end
         rescue => e
             @er << e

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160420080430) do
+ActiveRecord::Schema.define(version: 20160421103758) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -26,6 +26,26 @@ ActiveRecord::Schema.define(version: 20160420080430) do
     t.string   "periodicity",                         null: false
     t.string   "item_url_patterns",                   null: false, array: true
     t.string   "blacklist_url_patterns", default: [],              array: true
+  end
+
+  create_table "parsed_items", force: :cascade do |t|
+    t.string   "item_name"
+    t.string   "item_price"
+    t.string   "item_brand"
+    t.text     "item_desc"
+    t.string   "item_outer_category",               array: true
+    t.string   "item_sizes",                        array: true
+    t.string   "item_sizes_scale"
+    t.string   "item_colors",                       array: true
+    t.text     "item_composition"
+    t.text     "item_characteristics"
+    t.text     "item_main_img"
+    t.text     "item_imgs",                         array: true
+    t.boolean  "item_availability"
+    t.string   "url"
+    t.string   "domain_url"
+    t.datetime "created_at",           null: false
+    t.datetime "updated_at",           null: false
   end
 
 end

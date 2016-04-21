@@ -37,7 +37,7 @@ module SidekiqCrawler
         rescue => e
           raise SidekiqCrawler::CrawlerCardError , "selector expression invalid #{text} #{e.message}" 
         end
-        raise SidekiqCrawler::CrawlerCardError , "required selector not found" if res.empty? and req=="true"
+        raise SidekiqCrawler::CrawlerCardError , "required selector #{k} = #{text} not found" if res.empty? and req=="true"
         next if res.empty?
         result[k] = res
       end
@@ -46,7 +46,7 @@ module SidekiqCrawler
     
     private
     def normalize_results(input)
-      return input if input.instance_of? String
+      return input if (input.instance_of? String) || ([true, false].include? input)
       if input.instance_of?(Nokogiri::XML::Node) || input.instance_of?(Nokogiri::XML::NodeSet)
         return input.text
       elsif input.instance_of?(Array)
