@@ -1,5 +1,5 @@
 class CrawlersController < ApplicationController
-  before_action :set_crawler, only: [:show, :edit, :update, :destroy]
+  before_action :set_crawler, only: [:show, :edit, :update, :destroy, :crawler_logs]
 
   # GET /crawlers
   # GET /crawlers.json
@@ -77,6 +77,15 @@ class CrawlersController < ApplicationController
       format.html { redirect_to crawlers_url, notice: 'Crawler was successfully destroyed.' }
       format.json { head :no_content }
     end
+  end
+  
+  def crawler_logs
+   file = File.join(Rails.root, 'log', "#{@crawler.name}_evented_crawler.log") 
+   if File.exists?(file)
+     render :file => file
+   else
+     render :text => "No logs found", :layout => true
+   end
   end
 
   private

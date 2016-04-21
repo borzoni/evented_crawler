@@ -9,6 +9,7 @@
         th Периодичность 
         th Результаты
         th
+        th
     tbody
       - @crawlers.each do |crawler|
         tr
@@ -16,7 +17,8 @@
           td = crawler.url
           td = crawler.periodicity
           td = link_to 'Посмотреть', crawler_parsed_items_path(crawler), class: "btn btn-primary"
-          td = link_to 'Перейти', edit_crawler_path(crawler)
+          td = link_to 'Настройки', edit_crawler_path(crawler)
+          td = link_to 'Логи', controller: "crawlers", action: "crawler_logs", id: crawler.id
           td = link_to 'Удалить', crawler, data: {:confirm => 'Точно?'}, :method => :delete
 
   br
