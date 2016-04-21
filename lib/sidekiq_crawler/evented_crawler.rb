@@ -25,7 +25,7 @@ module SidekiqCrawler
   class EventedCrawler
     include EM::Protocols
     
-    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns )
+    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger )
       @url = url
       @crawler_id = crawler_id
       @selectors = selectors
@@ -36,6 +36,10 @@ module SidekiqCrawler
       @connections = 0
       @CONCURRENT_CONNECTIONS = 50
       @er = []
+      @logger = logger
+      @cards_counter = 0
+      @cards_saved_counter = 0
+      @cards_errors_counter = 0
     end
 
     def url_blacklisted?(url)
@@ -109,19 +113,21 @@ module SidekiqCrawler
                   @connections -= 1
 
                   links, duration = @links_found.size, Time.now - @start_time 
-                  puts "Cnn:#{@connections} Td:#{@links_todo.size} Fnd:#{links} T:#{duration} Rt:#{links/duration} Fnd/s"
+                  @logger.info "Cnn:#{@connections} Td:#{@links_todo.size} Fnd:#{links} T:#{duration} Rt:#{links/duration} Fnd/s"
                   
                   if url_item_card?(url)
-                    puts "ITEM CARD"
+                    @cards_counter += 1
                     begin
                       parser = SidekiqCrawler::CardParser.new(url, @selectors)
                       parser.set_page(req.response)
                       results = parser.parse
                       item = Item.find_or_create_by(url: url, crawler_id: @crawler_id)
                       item.update(results.merge({:url => url, :domain_url => base}))
-                      puts "#{url} saved"
+                      @cards_saved_counter += 1
+                      @logger.info "#{url} saved"
                     rescue => e
-                      puts e.message
+                      @cards_errors_counter += 1
+                      @logger.error "#{url} - #{e.message}"
                     end 
                   end     
 
@@ -131,6 +137,12 @@ module SidekiqCrawler
                   issue_more_connections(base, depth) 
                   # If there are no more links to process and no ongoing connections, we can quit.
                   if @links_todo.empty? and @connections == 0
+                      @logger.info "Finished in #{Time.now - @start_time}" 
+                      @logger.info "Connection errors: #{@er.size} "
+                      @logger.info "Processed total links: #{@links_found}"
+                      @logger.info "Processed card links: #{@cards_counter}"
+                      @logger.info "Succesfully processed card links: #{@cards_saved_counter}"
+                      @logger.info "Failed card links: #{@cards_errors_counter} "
                       EM.stop
                   end  
             end
@@ -138,6 +150,7 @@ module SidekiqCrawler
             @er << e
             if @connections == 0
                 puts "Parsing error."
+                logger.error "Parser crashed - #{e.message}"
                 EM.stop
             end
         end
@@ -148,6 +161,7 @@ module SidekiqCrawler
       EM.run do
        EM.kqueue  
           @start_time = Time.now
+          @logger.info "Crawler started: #{@start_time}"
           make_connection(@url)
       end
     end      

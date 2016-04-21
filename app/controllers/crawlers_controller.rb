@@ -87,7 +87,7 @@ class CrawlersController < ApplicationController
     
     def start_cron_job(crawler)
       name = "CrawlerJob_#{crawler.id}"
-      args = [crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns]
+      args = [crawler.name, crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns]
       Sidekiq::Cron::Job.destroy name
       job = Sidekiq::Cron::Job.new(name: name, cron: crawler.periodicity, args: args, queue: 'crawlers', class: 'SidekiqCrawler::Worker::CrawlerInstanceWorker')
       if job.valid?
