@@ -34,7 +34,7 @@ module SidekiqCrawler
         end
         begin
           res = apply_selectors(@page, text, eval_flag) 
-        rescue => e
+        rescue Exception => e
           raise SidekiqCrawler::CrawlerCardError , "selector expression invalid #{text} #{e.message}" 
         end
         raise SidekiqCrawler::CrawlerCardError , "required selector #{k} = #{text} not found" if (!res||res==""||res.empty?) and req=="true"
