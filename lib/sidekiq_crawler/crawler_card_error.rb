@@ -7,8 +7,8 @@ module SidekiqCrawler
     end
     
     def selector_message
-      return "#{@selector} is invalid" if type==:invalid
-      return "#{@selector} is not found" if type==:not_found
+      return "selector #{@selector} is invalid" if @type==:invalid
+      return "required selector #{@selector} is not found" if @type==:not_found
     end
   end
 end
