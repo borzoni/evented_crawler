@@ -1,4 +1,14 @@
 module SidekiqCrawler
   class CrawlerCardError < StandardError
+    def initialize(selector, message, type=:invalid)
+      @selector = selector
+      @mes = message
+      @type = type
+    end
+    
+    def selector_message
+      return "#{@selector} is invalid" if type==:invalid
+      return "#{@selector} is not found" if type==:not_found
+    end
   end
 end

@@ -6,6 +6,7 @@ require 'open-uri'
 require 'time'
 require 'active_record'
 require_relative './card_parser'
+require_relative './crawler_card_error'
 
 module SidekiqCrawler
         ActiveRecord::Base.establish_connection(
@@ -134,6 +135,10 @@ module SidekiqCrawler
                       item.update(results.merge({:url => url, :domain_url => base}))
                       @cards_saved_counter += 1
                       @logger.info "#{url} saved"
+                    rescue SidekiqCrawler::CrawlerCardError => e
+                      @cards_errors_counter += 1
+                      @logger.error "#{url} - #{e.selector_message}"  
+                    end  
                     rescue => e
                       @cards_errors_counter += 1
                       @logger.error "#{url} - #{e.message}"
