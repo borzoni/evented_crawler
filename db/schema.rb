@@ -11,21 +11,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160421134222) do
+ActiveRecord::Schema.define(version: 20160422101656) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "hstore"
 
   create_table "crawlers", force: :cascade do |t|
-    t.datetime "created_at",                          null: false
-    t.datetime "updated_at",                          null: false
-    t.hstore   "selectors",                           null: false
-    t.string   "name",                                null: false
-    t.string   "url",                                 null: false
-    t.string   "periodicity",                         null: false
-    t.string   "item_url_patterns",                   null: false, array: true
-    t.string   "blacklist_url_patterns", default: [],              array: true
+    t.datetime "created_at",                            null: false
+    t.datetime "updated_at",                            null: false
+    t.hstore   "selectors",                             null: false
+    t.string   "name",                                  null: false
+    t.string   "url",                                   null: false
+    t.string   "periodicity",                           null: false
+    t.string   "item_url_patterns",                     null: false, array: true
+    t.string   "blacklist_url_patterns", default: [],                array: true
+    t.float    "items_threshold",        default: 0.5
+    t.integer  "min_items_parsed",       default: 1000
+    t.integer  "max_work_time",          default: 1800
   end
 
   create_table "parsed_items", force: :cascade do |t|

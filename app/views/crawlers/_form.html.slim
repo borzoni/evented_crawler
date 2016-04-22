@@ -7,6 +7,9 @@
         = f.input :periodicity, label: "Периодичность парсинга"
         = f.input :item_url_patterns, as: :text, label: "Регулярки для карточки товаров"
         = f.input :blacklist_url_patterns, as: :text, label: "Регулярки для игнорируемых страниц"
+        = f.input :min_items_parsed, as: :text, label: "Минимальное число страниц обхода"
+        = f.input :items_threshold, as: :text, label: "Максимальный порог 'пройдено страниц/страниц товара'"
+        = f.input :max_work_time, as: :text, label: "Максимальное время работы(мин)"
       = field_set_tag 'Селекторы' do  
         = f.simple_fields_for(f.object.selectors) do |ff|
           - f.object.selectors.each do |key, value|

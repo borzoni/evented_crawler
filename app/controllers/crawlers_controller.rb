@@ -1,9 +1,18 @@
 class CrawlersController < ApplicationController
-  before_action :set_crawler, only: [:show, :edit, :update, :destroy, :crawler_logs]
+  before_action :set_crawler, only: [:show, :edit, :update, :destroy, :crawler_logs, :start_crawler]
 
   # GET /crawlers
   # GET /crawlers.json
   def index
+     @in_progress = {}
+     
+     w =Sidekiq::Workers.new
+     w.each do |process_id, thread_id, work|
+       if work["payload"]["class"] == "SidekiqCrawler::Worker::CrawlerInstanceWorker"
+         id = work["payload"]["args"][1]
+         @in_progress[id] = true
+       end
+     end
     @crawlers = Crawler.all
   end
 
@@ -30,7 +39,7 @@ class CrawlersController < ApplicationController
     @crawler_form.process_params(crawler_params)
     respond_to do |format|
       if @crawler_form.save
-        start_cron_job @crawler_form.crawler
+        #start_cron_job @crawler_form.crawler
         format.html { redirect_to @crawler_form.crawler, notice: 'Crawler was successfully created.' }
         format.json { render :show, status: :created, location: @crawler_form.crawler }
       else
@@ -59,7 +68,7 @@ class CrawlersController < ApplicationController
     @crawler_form.process_params(crawler_params)
     respond_to do |format|
       if @crawler_form.save
-        start_cron_job @crawler_form.crawler
+        #start_cron_job @crawler_form.crawler
         format.html { redirect_to @crawler_form.crawler, notice: 'Crawler was successfully updated.' }
         format.json { render :show, status: :ok, location: @crawler_form.crawler }
       else
@@ -80,12 +89,28 @@ class CrawlersController < ApplicationController
   end
   
   def crawler_logs
-   file = File.join(Rails.root, 'log', "#{@crawler.name}_evented_crawler.log") 
-   if File.exists?(file)
-     (render :file => file , :layout => false, content_type: 'text/plain').gsub("\n",'<br />')
+   f= File.join(Rails.root, 'log', "#{@crawler.name}_evented_crawler.log") 
+   if File.exists?(f)
+      @text = `tail -n 500 #{f}`
+      render :text => @text.gsub("\n",'<br />')
    else
      render :text => "No logs found"
    end
+  end
+  
+  def start_crawler
+    crawler = @crawler
+    args = [crawler.name, crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns, crawler.items_threshold, crawler.max_work_time, crawler.min_items_parsed]
+    Sidekiq::Client.push({
+        'class' => SidekiqCrawler::Worker::CrawlerInstanceWorker,
+        'queue' => 'crawlers',
+        'args'  => args
+    })
+    sleep(1) # to test queue update.   
+    #SidekiqCrawler::Worker::CrawlerInstanceWorker.perform_async(args)
+    respond_to do |format|
+      format.html {redirect_to crawler, notice: 'Crawler was started' } 
+    end  
   end
 
   private
@@ -96,7 +121,7 @@ class CrawlersController < ApplicationController
     
     def start_cron_job(crawler)
       name = "CrawlerJob_#{crawler.id}"
-      args = [crawler.name, crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns]
+      args = [crawler.name, crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns, crawler.items_threshold, crawler.max_work_time, crawler.min_items_parsed]
       Sidekiq::Cron::Job.destroy name
       job = Sidekiq::Cron::Job.new(name: name, cron: crawler.periodicity, args: args, queue: 'crawlers', class: 'SidekiqCrawler::Worker::CrawlerInstanceWorker')
       if job.valid?
@@ -108,7 +133,7 @@ class CrawlersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def crawler_params
-      params.require(:crawler).permit(:name, :test_url, :url, :periodicity, :item_url_patterns, :selectors, :blacklist_url_patterns, selectors: permit_recursive_params(params[:crawler][:selectors])) 
+      params.require(:crawler).permit(:name, :test_url, :url, :periodicity, :item_url_patterns, :selectors, :items_threshold, :min_items_parsed, :max_work_time, :blacklist_url_patterns, selectors: permit_recursive_params(params[:crawler][:selectors])) 
     end
     
 end

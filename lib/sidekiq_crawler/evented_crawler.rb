@@ -25,8 +25,11 @@ module SidekiqCrawler
   class EventedCrawler
     include EM::Protocols
     
-    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, retries= nil )
+    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, threshold, max_time, min_parsed, retries= nil )
       @url = url
+      @threshold = threshold
+      @max_time = max_time
+      @min_parsed = min_parsed
       @max_retries = retries || 10;
       @crawler_id = crawler_id
       @selectors = selectors
@@ -41,6 +44,7 @@ module SidekiqCrawler
       @cards_counter = 0
       @cards_saved_counter = 0
       @cards_errors_counter = 0
+      @finalized = false
     end
 
     def url_blacklisted?(url)
@@ -110,7 +114,8 @@ module SidekiqCrawler
               @logger.error "#{r.conn.uri} - #{r.error}"
             end
             @links_found.add(url) 
-
+            
+            check_border_conditions if @links_found.size >= @min_parsed
             # Callback to be executed when the request is finished.
             req.callback do
                   # This request is finished.
@@ -162,14 +167,30 @@ module SidekiqCrawler
         end
     end
     
+    def check_border_conditions
+      if ((Time.now - @start_time)/60)>= @max_time
+        finalize do
+          @logger.error "Maximum running time of #{@max_time} mins reached. Stopping ..."
+        end
+      elsif (@cards_counter.to_f/@links_found.size) < @threshold
+        finalize do
+          @logger.error "Maximum effective parsing threshold of #{@threshold} reached. Stopping ..."
+        end
+       end 
+    end
+    
     def finalize
-      yield if block_given?
-      @logger.info "Finished in #{Time.now - @start_time}" 
-      @logger.info "Connection errors: #{@er.size} "
-      @logger.info "Processed total links: #{@links_found.size}"
-      @logger.info "Processed card links: #{@cards_counter}"
-      @logger.info "Succesfully processed card links: #{@cards_saved_counter}"
-      @logger.info "Failed card links: #{@cards_errors_counter} "
+      return if @finalized
+      @finalized = true
+      EM.add_shutdown_hook do
+        yield if block_given?
+        @logger.info "Finished in #{Time.now - @start_time}" 
+        @logger.info "Connection errors: #{@er.size} "
+        @logger.info "Processed total links: #{@links_found.size}"
+        @logger.info "Processed card links: #{@cards_counter}"
+        @logger.info "Succesfully processed card links: #{@cards_saved_counter}"
+        @logger.info "Failed card links: #{@cards_errors_counter} "
+      end  
       EM.stop
     end
 

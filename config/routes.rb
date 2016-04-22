@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   end
   match "/test_crawler" => "crawlers#test", :via => :post
   get "/crawler_logs/:id", :to => "crawlers#crawler_logs"
+  get "/start_crawler/:id", :to => "crawlers#start_crawler"
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
   # Serve websocket cable requests in-process
