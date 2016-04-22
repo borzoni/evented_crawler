@@ -137,8 +137,7 @@ module SidekiqCrawler
                       @logger.info "#{url} saved"
                     rescue SidekiqCrawler::CrawlerCardError => e
                       @cards_errors_counter += 1
-                      @logger.error "#{url} - #{e.selector_message}"  
-                    end  
+                      @logger.error "#{url} - #{e.selector_message}"    
                     rescue => e
                       @cards_errors_counter += 1
                       @logger.error "#{url} - #{e.message}"
