@@ -140,12 +140,10 @@ module SidekiqCrawler
                   get_inner_links(url, req.response, base, depth)
                   issue_connection(base, depth) 
                   # If there are no more links to process and no ongoing connections, we can quit.
-                  if  (@links_todo.empty?) and (@max_retries > 0) and (!@er.empty?)
-                    until @er.empty?
-                      uri = @er.pop.conn.uri
-                      @links_todo.push uri
-                      issue_connection(base, depth)
-                    end
+                  if  (@links_todo.empty?) and (@max_retries > 0) and (!@er.empty?) and @connections == 0
+                    @er.each{|e| @links_todo.push e.pop.conn.ur}
+                    @er = []
+                    20.times{ issue_connection(base, depth) }
                     @max_retries -= 1  
                   end
                   if @links_todo.empty? and @connections == 0
