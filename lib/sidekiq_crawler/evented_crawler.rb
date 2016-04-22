@@ -105,7 +105,6 @@ module SidekiqCrawler
         # Set the base for the first run.
         base ||= URI.parse(url)
         begin
-            #:head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html"
             conn_opts = {:connect_timeout => 60, :inactivity_timeout => 60}
             req = EventMachine::HttpRequest.new(url, conn_opts).get :head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html", 'Accept-Language' => 'ru,en-US', :cookies => {:country_iso => 'RU'}}
             #request in progress
