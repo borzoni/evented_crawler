@@ -25,8 +25,9 @@ module SidekiqCrawler
   class EventedCrawler
     include EM::Protocols
     
-    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger )
+    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, retries= nil )
       @url = url
+      @max_retries = retries || 10;
       @crawler_id = crawler_id
       @selectors = selectors
       @blacklisted = blacklist_url_patterns
@@ -80,7 +81,7 @@ module SidekiqCrawler
                 if url.host == host
                     @links_todo.push url.to_s 
                 end  
-                issue_more_connections(base, depth)                                       
+                issue_connection(base, depth)                                       
             end
         end
     end
@@ -89,7 +90,7 @@ module SidekiqCrawler
       @er
     end
     
-    def issue_more_connections(base, depth)
+    def issue_connection(base, depth)
       unless @links_todo.empty? or @connections > @CONCURRENT_CONNECTIONS
          make_connection(@links_todo.pop, base, depth+1) 
       end
@@ -99,12 +100,15 @@ module SidekiqCrawler
         # Set the base for the first run.
         base ||= URI.parse(url)
         begin
-            conn_opts = {:connect_timeout => 60}
+            conn_opts = {:connect_timeout => 60, :inactivity_timeout => 60}
             req = EventMachine::HttpRequest.new(url, conn_opts).get :head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html"}
             #request in progress
             @connections += 1
-            req.errback{|er| @er << er; @connections -= 1}
-
+            req.errback do |r| 
+              @er << r
+              @connections -= 1
+              @logger.error "#{r.conn.uri} - #{r.error}"
+            end
             @links_found.add(url) 
 
             # Callback to be executed when the request is finished.
@@ -134,26 +138,41 @@ module SidekiqCrawler
 
                   # Process the links in the response.
                   get_inner_links(url, req.response, base, depth)
-                  issue_more_connections(base, depth) 
+                  issue_connection(base, depth) 
                   # If there are no more links to process and no ongoing connections, we can quit.
+                  if  (@links_todo.empty?) and (@max_retries > 0) and (!@er.empty?)
+                    until @er.empty?
+                      uri = @er.pop.conn.uri
+                      @links_todo.push uri
+                      issue_connection(base, depth)
+                    end
+                    @max_retries -= 1  
+                  end
                   if @links_todo.empty? and @connections == 0
-                      @logger.info "Finished in #{Time.now - @start_time}" 
-                      @logger.info "Connection errors: #{@er.size} "
-                      @logger.info "Processed total links: #{@links_found.size}"
-                      @logger.info "Processed card links: #{@cards_counter}"
-                      @logger.info "Succesfully processed card links: #{@cards_saved_counter}"
-                      @logger.info "Failed card links: #{@cards_errors_counter} "
-                      EM.stop
-                  end  
+                     finalize do
+                       @logger.info "Successfully finished #{@url} parsing task" 
+                     end
+                  end
             end
         rescue => e
             @er << e
             if @connections == 0
-                puts "Parsing error."
+              finalize do
                 logger.error "Parser crashed - #{e.message}"
-                EM.stop
+              end
             end
         end
+    end
+    
+    def finalize
+      yield if block_given?
+      @logger.info "Finished in #{Time.now - @start_time}" 
+      @logger.info "Connection errors: #{@er.size} "
+      @logger.info "Processed total links: #{@links_found.size}"
+      @logger.info "Processed card links: #{@cards_counter}"
+      @logger.info "Succesfully processed card links: #{@cards_saved_counter}"
+      @logger.info "Failed card links: #{@cards_errors_counter} "
+      EM.stop
     end
 
   # EventMachine reactor loop.
