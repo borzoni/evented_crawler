@@ -55,6 +55,7 @@ group :development do
   gem 'capistrano-rails'
   gem 'capistrano-rvm', github: "capistrano/rvm"
   gem 'capistrano-passenger'
+  gem 'mina'
   # Access an IRB console on exception pages or by using <%= console %> in views
   gem 'web-console', '~> 3.0'
   gem 'listen', '~> 3.0.5'
