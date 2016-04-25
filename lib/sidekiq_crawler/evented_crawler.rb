@@ -71,7 +71,7 @@ module SidekiqCrawler
         # Find all <a> elements.
         doc.css('a').each do |link|
             begin
-                url = URI.parse(link['href'])
+                url = URI.parse(URI.decode(link['href']))
                 url.fragment = nil
             rescue => e
                 next
@@ -80,7 +80,6 @@ module SidekiqCrawler
             if url.relative?
               url = base.merge(url) 
             end  
-            url = URI.decode(url)
             unless @links_todo.include? url.to_s or @links_found.include? url.to_s or url_blacklisted?(url.to_s)
 
                 if url.host == host
@@ -207,6 +206,8 @@ module SidekiqCrawler
           make_connection(@url)
       end
     rescue Exception => e
+      puts e.message
+      puts e.backtrace
       @logger.error "CRITICAL. Terminated - #{e.message}"
       @logger.info "Finished in #{Time.now - @start_time}" 
       @logger.info "Connection errors: #{@er.size} "
