@@ -207,8 +207,6 @@ module SidekiqCrawler
           make_connection(@url)
       end
     rescue Exception => e
-      #test github issue
-      #test
       @logger.error "CRITICAL. Terminated - #{e.message}"
       @logger.info "Finished in #{Time.now - @start_time}" 
       @logger.info "Connection errors: #{@er.size} "
