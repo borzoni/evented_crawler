@@ -206,6 +206,14 @@ module SidekiqCrawler
           @logger.info "Crawler started: #{@start_time}"
           make_connection(@url)
       end
+    rescue Exception => e
+      @logger.error "CRITICAL. Terminated - #{e.message}"
+      @logger.info "Finished in #{Time.now - @start_time}" 
+      @logger.info "Connection errors: #{@er.size} "
+      @logger.info "Processed total links: #{@links_found.size}"
+      @logger.info "Processed card links: #{@cards_counter}"
+      @logger.info "Succesfully processed card links: #{@cards_saved_counter}"
+      @logger.info "Failed card links: #{@cards_errors_counter} "
     end      
   end
 end  

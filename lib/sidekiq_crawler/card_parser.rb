@@ -47,7 +47,7 @@ module SidekiqCrawler
     private
     def normalize_results(input)
       return normalize_str(input) if (input.instance_of? String) 
-      return input if  ([true, false].include? input)
+      return input if  ([true, false].include? input) ||(input.is_a?(Numeric))
       if input.instance_of?(Nokogiri::XML::Node) || input.instance_of?(Nokogiri::XML::NodeSet)
         return input.text
       elsif input.instance_of?(Array)

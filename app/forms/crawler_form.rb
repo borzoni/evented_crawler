@@ -14,12 +14,12 @@ class CrawlerForm
   
   #blacklist_url_patterns field is an array, convert it to show as a string in a view
   def blacklist_url_patterns 
-    @crawler.blacklist_url_patterns.join(",")
+    @crawler.blacklist_url_patterns.join("\r\n")
   end
   
   #item_url_patterns field is an array, convert it to show as a string in a view
   def item_url_patterns 
-    @crawler.item_url_patterns.join(",")  if @crawler.item_url_patterns
+    @crawler.item_url_patterns.join("\r\n")  if @crawler.item_url_patterns
   end
   
   
@@ -30,8 +30,8 @@ class CrawlerForm
   
   def process_params(params)
     new_params = params.slice(:name, :url, :periodicity, :blacklist_url_patterns, :item_url_patterns, :selectors, :items_threshold, :min_items_parsed, :max_work_time)
-    new_params[:blacklist_url_patterns] = new_params[:blacklist_url_patterns].split(',').map{|s| s.strip}
-    new_params[:item_url_patterns] = new_params[:item_url_patterns].split(',').map{|s| s.strip}
+    new_params[:blacklist_url_patterns] = new_params[:blacklist_url_patterns].split(/\r\n/).map{|s| s.strip}.reject(&:empty?)
+    new_params[:item_url_patterns] = new_params[:item_url_patterns].split(/\r\n/).map{|s| s.strip}.reject(&:empty?)
     new_params[:selectors].each{|k,v| new_params[:selectors][k] = v.to_json}
     crawler.update_attributes(new_params)
     assign_hstore_attrs(crawler.selectors) 

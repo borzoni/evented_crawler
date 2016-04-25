@@ -34,7 +34,6 @@ class CrawlersController < ApplicationController
   # POST /crawlers
   # POST /crawlers.json
   def create
-    #raise(params[:test_crawler].inspect)
     @crawler_form = CrawlerForm.new
     @crawler_form.process_params(crawler_params)
     respond_to do |format|
