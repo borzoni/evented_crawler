@@ -2,7 +2,7 @@ require 'eventmachine'
 require 'em-http-request'
 require 'nokogiri'
 require 'set'
-require 'open-uri'
+require 'addressable/uri'
 require 'time'
 require 'active_record'
 require_relative './card_parser'
@@ -51,7 +51,7 @@ module SidekiqCrawler
     def url_blacklisted?(url)
       @blacklisted.each do |p|
         r = Regexp.new(p)
-        return true if url =~ r
+        return true if (url =~ r) || (url =~/\.(png|jpg|jpeg|bmp)$/)
       end  
       false
     end
@@ -71,15 +71,15 @@ module SidekiqCrawler
         # Find all <a> elements.
         doc.css('a').each do |link|
             begin
-                url = URI.parse(URI.decode(link['href']))
+                url = Addressable::URI.parse(Addressable::URI.unencode(link['href']))
                 url.fragment = nil
             rescue => e
                 next
             end
             
             if url.relative?
-              url = base.merge(url) 
-            end  
+              url = base.join(url) 
+            end
             unless @links_todo.include? url.to_s or @links_found.include? url.to_s or url_blacklisted?(url.to_s)
 
                 if url.host == host
@@ -102,7 +102,7 @@ module SidekiqCrawler
 
     def make_connection(url, base=nil, depth=0)
         # Set the base for the first run.
-        base ||= URI.parse(URI.decode(url))
+        base ||= Addressable::URI.parse(Addressable::URI.unencode(url))
         begin
             conn_opts = {:connect_timeout => 60, :inactivity_timeout => 60}
             req = EventMachine::HttpRequest.new(url, conn_opts).get :head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html", 'Accept-Language' => 'ru,en-US', :cookies => {:country_iso => 'RU'}}
@@ -149,7 +149,7 @@ module SidekiqCrawler
                   issue_connection(base, depth) 
                   # If there are no more links to process and no ongoing connections, we can quit.
                   if  (@links_todo.empty?) and (@max_retries > 0) and (!@er.empty?) and @connections == 0
-                    @er.each{|e| @links_todo.push URI.decode(e.conn.uri)}
+                    @er.each{|e| @links_todo.push Addressable::URI.unencode(e.conn.uri)}
                     @er = []
                     20.times{ issue_connection(base, depth) }
                     @max_retries -= 1  
