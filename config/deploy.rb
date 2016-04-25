@@ -12,7 +12,7 @@ require 'mina/rvm'    # for rvm support. (http://rvm.io)
 
 set :domain, 'crawler.shmoter.ru'
 set :deploy_to, '/home/crawlers_user/www/clothes_crawler/production'
-set :repository, 'git@github.com:benone/shmoter-crawler.git'
+set :repository, 'git@github.com:benone/shmoter-crawler-2.git'
 set :branch, 'master'
 
 # For system-wide RVM install.
