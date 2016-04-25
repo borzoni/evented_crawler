@@ -80,7 +80,7 @@ module SidekiqCrawler
             if url.relative?
               url = base.merge(url) 
             end  
-            
+            url = URI.decode(url)
             unless @links_todo.include? url.to_s or @links_found.include? url.to_s or url_blacklisted?(url.to_s)
 
                 if url.host == host
@@ -103,7 +103,7 @@ module SidekiqCrawler
 
     def make_connection(url, base=nil, depth=0)
         # Set the base for the first run.
-        base ||= URI.parse(url)
+        base ||= URI.parse(URI.decode(url))
         begin
             conn_opts = {:connect_timeout => 60, :inactivity_timeout => 60}
             req = EventMachine::HttpRequest.new(url, conn_opts).get :head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html", 'Accept-Language' => 'ru,en-US', :cookies => {:country_iso => 'RU'}}
@@ -150,7 +150,7 @@ module SidekiqCrawler
                   issue_connection(base, depth) 
                   # If there are no more links to process and no ongoing connections, we can quit.
                   if  (@links_todo.empty?) and (@max_retries > 0) and (!@er.empty?) and @connections == 0
-                    @er.each{|e| @links_todo.push e.conn.url}
+                    @er.each{|e| @links_todo.push URI.decode(e.conn.url)}
                     @er = []
                     20.times{ issue_connection(base, depth) }
                     @max_retries -= 1  
