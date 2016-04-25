@@ -150,7 +150,7 @@ module SidekiqCrawler
                   issue_connection(base, depth) 
                   # If there are no more links to process and no ongoing connections, we can quit.
                   if  (@links_todo.empty?) and (@max_retries > 0) and (!@er.empty?) and @connections == 0
-                    @er.each{|e| @links_todo.push URI.decode(e.conn.url)}
+                    @er.each{|e| @links_todo.push URI.decode(e.conn.uri)}
                     @er = []
                     20.times{ issue_connection(base, depth) }
                     @max_retries -= 1  
