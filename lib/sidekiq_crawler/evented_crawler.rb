@@ -105,7 +105,7 @@ module SidekiqCrawler
         base ||= Addressable::URI.parse(Addressable::URI.unencode(url))
         begin
             conn_opts = {:connect_timeout => 60, :inactivity_timeout => 60}
-            req = EventMachine::HttpRequest.new(url, conn_opts).get :head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html", 'Accept-Language' => 'ru,en-US', :cookies => {:country_iso => 'RU'}}
+            req = EventMachine::HttpRequest.new(url, conn_opts).get :head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html", 'Accept-Language' => 'ru,en-US', :cookies => {:country_iso => 'RU'}}, :redirects => 5
             #request in progress
             @connections += 1
             req.errback do |r| 
