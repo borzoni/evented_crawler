@@ -59,7 +59,7 @@ module SidekiqCrawler
     
     def empty_selector?(s)
       return false if  s.is_a?(Numeric)
-      return (!s||s==""||s.empty)
+      return (!s||s==""||s.empty?)
     end
     
     def normalize_str(str)
