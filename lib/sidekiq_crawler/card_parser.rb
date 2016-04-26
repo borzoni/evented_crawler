@@ -37,8 +37,8 @@ module SidekiqCrawler
         rescue Exception => e
           raise SidekiqCrawler::CrawlerCardError.new(k, "selector expression invalid #{text} #{e.message}", :invalid) 
         end
-        raise SidekiqCrawler::CrawlerCardError.new(k,"required selector #{k} = #{text} not found", :not_found) if (!res||res==""||res.empty?) and req=="true"
-        next if (!res||res==""||res.empty?)
+        raise SidekiqCrawler::CrawlerCardError.new(k,"required selector #{k} = #{text} not found", :not_found) if empty_selector?(res) and req=="true"
+        next if empty_selector?(res)
         result[k] = res
       end
       result
@@ -55,6 +55,11 @@ module SidekiqCrawler
       else
         return input  
       end      
+    end
+    
+    def empty_selector?(s)
+      return false if  s.is_a?(Numeric)
+      return (!res||res==""||res.empty)
     end
     
     def normalize_str(str)
