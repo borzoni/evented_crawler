@@ -47,6 +47,7 @@ module SidekiqCrawler
       @cards_errors_counter = 0
       @finalized = false
       @tick_time = nil
+      @base = nil
     end
 
     def url_blacklisted?(url)
@@ -66,8 +67,8 @@ module SidekiqCrawler
       false      
     end
 
-    def get_inner_links(root, content, base, depth)
-        host = base.host
+    def get_inner_links(root, content)
+        host = @base.host
         doc = Nokogiri::HTML(content)
 
         # Find all <a> elements.
@@ -80,14 +81,14 @@ module SidekiqCrawler
             end
             
             if url.relative?
-              url = base.join(url) 
+              url = @base.join(url) 
             end
             unless @links_todo.include? url.to_s or @links_found.include? url.to_s or url_blacklisted?(url.to_s)
 
                 if url.host == host
                     @links_todo.push url.to_s 
                 end  
-                issue_connection(base, depth)                                       
+                issue_connection()                                     
             end
         end
     end
@@ -96,70 +97,39 @@ module SidekiqCrawler
       @er
     end
     
-    def issue_connection(base, depth)
+    def issue_connection
       unless @links_todo.empty? or @connections > @CONCURRENT_CONNECTIONS
-         make_connection(@links_todo.pop, base, depth+1) 
+         make_connection(@links_todo.pop) 
       end
     end
 
-    def make_connection(url, base=nil, depth=0)
+    def make_connection(url)
         # Set the base for the first run.
-        base ||= Addressable::URI.parse(Addressable::URI.unencode(url))
+        @base ||= Addressable::URI.parse(Addressable::URI.unencode(url))
         begin
             conn_opts = {:connect_timeout => 60, :inactivity_timeout => 60}
             req = EventMachine::HttpRequest.new(url, conn_opts).get :head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html", 'Accept-Language' => 'ru,en-US', :cookies => {:country_iso => 'RU'}}, :redirects => 5
             #request in progress
             @connections += 1
+            check_border_conditions if @links_found.size >= @min_parsed
             req.errback do |r| 
-              @er << r
-              @connections -= 1
-              @logger.error "#{r.conn.uri} - #{r.error}"
+              process_response do
+                @er << r
+                @logger.error "#{r.conn.uri} - #{r.error}"
+              end  
             end
             @links_found.add(url) 
             
-            check_border_conditions if @links_found.size >= @min_parsed
             # Callback to be executed when the request is finished.
             req.callback do
-                  # This request is finished.
-                  @connections -= 1
-                  @logger.debug "#{url} loaded"
-                  links, duration, tick_period = @links_found.size, Time.now - @start_time, (Time.now - @tick_time)/60
-                  process_stats_tick(tick_period, duration, links)
-                  if url_item_card?(url)
-                    @cards_counter += 1
-                    begin
-                      parser = SidekiqCrawler::CardParser.new(url, @selectors)
-                      parser.set_page(req.response)
-                      results = parser.parse
-                      item = Item.find_or_create_by(url: url, crawler_id: @crawler_id)
-                      item.update(results.merge({:url => url, :domain_url => base}))
-                      @cards_saved_counter += 1
-                    rescue SidekiqCrawler::CrawlerCardError => e
-                      @cards_errors_counter += 1
-                      @logger.error "#{url} - #{e.selector_message}"    
-                    rescue => e
-                      @cards_errors_counter += 1
-                      @logger.error "#{url} - #{e.message}"
-                    end 
-                  end     
-
-
-                  # Process the links in the response.
-                  get_inner_links(url, req.response, base, depth)
-                  issue_connection(base, depth) 
-                  # If there are no more links to process and no ongoing connections, we can quit.
-                  if  (@links_todo.empty?) and (@max_retries > 0) and (!@er.empty?) and @connections == 0
-                    puts @max_retries, @er.size, @links_todo.size
-                    @er.each{|e| @links_todo.push Addressable::URI.unencode(e.conn.uri)}
-                    @er = []
-                    10.times{ issue_connection(base, depth) }
-                    @max_retries -= 1  
-                  end
-                  if @links_todo.empty? and @connections == 0
-                     finalize do
-                       @logger.info "Successfully finished #{@url} parsing task" 
-                     end
-                  end
+              process_response do 
+                @logger.debug "#{url} loaded"
+                if url_item_card?(url)
+                  process_card(url, req) 
+                end     
+                get_inner_links(url, req.response)
+                issue_connection() #if no links found on page, just to continue the chain
+              end  
             end
         rescue Exception => e
             puts e.message
@@ -172,12 +142,11 @@ module SidekiqCrawler
     end
     
     def process_stats_tick(tick_period, duration, links)
-        return if (tick_period < 1)
-        if (tick_period >= 1)
-          @logger.info "Cnn:#{@connections} Td:#{@links_todo.size} FndLnk:#{links}(#{(links/(duration/60)).floor} Links/min) FndGoods:#{@cards_saved_counter}(#{(@cards_saved_counter/(duration/60)).floor} Goods/min) T:#{duration}"
-          @tick_time = Time.now
-        end
-    
+      return if (tick_period < 1)
+      if (tick_period >= 1)
+        @logger.info "Cnn:#{@connections} Td:#{@links_todo.size} FndLnk:#{links}(#{(links/(duration/60)).floor} Links/min) FndGoods:#{@cards_saved_counter}(#{(@cards_saved_counter/(duration/60)).floor} Goods/min) T:#{duration}"
+        @tick_time = Time.now
+      end
     end
     
     def check_border_conditions
@@ -189,7 +158,41 @@ module SidekiqCrawler
         finalize do
           @logger.error "Maximum effective parsing threshold of #{@threshold} reached. Stopping ..."
         end
-       end 
+      end 
+    end
+    
+    def process_card(url, req)
+      @cards_counter += 1
+      parser = SidekiqCrawler::CardParser.new(url, @selectors)
+      parser.set_page(req.response)
+      results = parser.parse
+      item = Item.find_or_create_by(url: url, crawler_id: @crawler_id)
+      item.update(results.merge({:url => url, :domain_url => @base}))
+      @cards_saved_counter += 1
+    rescue SidekiqCrawler::CrawlerCardError => e
+      @cards_errors_counter += 1
+      @logger.error "#{url} - #{e.selector_message}"    
+    rescue => e
+      @cards_errors_counter += 1
+      @logger.error "#{url} - #{e.message}" 
+    end
+    
+    def process_response
+      @connections -= 1
+      links, duration, tick_period = @links_found.size, Time.now - @start_time, (Time.now - @tick_time)/60
+      process_stats_tick(tick_period, duration, links)
+      yield if block_given?
+      if  (@links_todo.empty?) and (@max_retries > 0) and (!@er.empty?) and @connections == 0
+        @er.each{|e| @links_todo.push Addressable::URI.unencode(e.conn.uri)}
+        @er = []
+        10.times{ issue_connection() }
+        @max_retries -= 1  
+      end
+      if @links_todo.empty? and @connections == 0
+        finalize do
+          @logger.info "Successfully finished #{@url} parsing task" 
+        end
+      end
     end
     
     def finalize
