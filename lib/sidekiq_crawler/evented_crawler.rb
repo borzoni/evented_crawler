@@ -14,8 +14,8 @@ module SidekiqCrawler
           :host     => "localhost",
           :username => "crawlers_user",
           :password => "12345",
-          :database => "cloth_crawlers",
-          :port => 5432
+          :database => "dev_cloth_crawlers",
+          :port => 5433
       )
 
 
@@ -31,7 +31,7 @@ module SidekiqCrawler
       @threshold = threshold
       @max_time = max_time
       @min_parsed = min_parsed
-      @max_retries = retries || 10;
+      @max_retries = retries || 5;
       @crawler_id = crawler_id
       @selectors = selectors
       @blacklisted = blacklist_url_patterns
@@ -46,12 +46,14 @@ module SidekiqCrawler
       @cards_saved_counter = 0
       @cards_errors_counter = 0
       @finalized = false
+      @tick_time = nil
     end
 
     def url_blacklisted?(url)
+      return true if (url =~/\.(png|jpg|jpeg|bmp)$/)
       @blacklisted.each do |p|
         r = Regexp.new(p)
-        return true if (url =~ r) || (url =~/\.(png|jpg|jpeg|bmp)$/)
+        return true if (url =~ r)
       end  
       false
     end
@@ -120,10 +122,9 @@ module SidekiqCrawler
             req.callback do
                   # This request is finished.
                   @connections -= 1
-
-                  links, duration = @links_found.size, Time.now - @start_time 
-                  @logger.info "Cnn:#{@connections} Td:#{@links_todo.size} Fnd:#{links} T:#{duration} Rt:#{links/duration} Fnd/s"
-                  
+                  @logger.debug "#{url} loaded"
+                  links, duration, tick_period = @links_found.size, Time.now - @start_time, (Time.now - @tick_time)/60
+                  process_stats_tick(tick_period, duration, links)
                   if url_item_card?(url)
                     @cards_counter += 1
                     begin
@@ -133,7 +134,6 @@ module SidekiqCrawler
                       item = Item.find_or_create_by(url: url, crawler_id: @crawler_id)
                       item.update(results.merge({:url => url, :domain_url => base}))
                       @cards_saved_counter += 1
-                      @logger.info "#{url} saved"
                     rescue SidekiqCrawler::CrawlerCardError => e
                       @cards_errors_counter += 1
                       @logger.error "#{url} - #{e.selector_message}"    
@@ -149,9 +149,10 @@ module SidekiqCrawler
                   issue_connection(base, depth) 
                   # If there are no more links to process and no ongoing connections, we can quit.
                   if  (@links_todo.empty?) and (@max_retries > 0) and (!@er.empty?) and @connections == 0
+                    puts @max_retries, @er.size, @links_todo.size
                     @er.each{|e| @links_todo.push Addressable::URI.unencode(e.conn.uri)}
                     @er = []
-                    20.times{ issue_connection(base, depth) }
+                    10.times{ issue_connection(base, depth) }
                     @max_retries -= 1  
                   end
                   if @links_todo.empty? and @connections == 0
@@ -160,14 +161,23 @@ module SidekiqCrawler
                      end
                   end
             end
-        rescue => e
-            @er << e
+        rescue Exception => e
+            puts e.message
             if @connections == 0
               finalize do
                 logger.error "Parser crashed - #{e.message}"
               end
             end
         end
+    end
+    
+    def process_stats_tick(tick_period, duration, links)
+        return if (tick_period < 1)
+        if (tick_period >= 1)
+          @logger.info "Cnn:#{@connections} Td:#{@links_todo.size} FndLnk:#{links}(#{(links/(duration/60)).floor} Links/min) FndGoods:#{@cards_saved_counter}(#{(@cards_saved_counter/(duration/60)).floor} Goods/min) T:#{duration}"
+          @tick_time = Time.now
+        end
+    
     end
     
     def check_border_conditions
@@ -201,8 +211,8 @@ module SidekiqCrawler
     def go
       EM.run do
        EM.kqueue  
-          @start_time = Time.now
-          @logger.info "Crawler started: #{@start_time}"
+          @start_time = @tick_time = Time.now
+          @logger.info "Crawler started"
           make_connection(@url)
       end
     rescue Exception => e

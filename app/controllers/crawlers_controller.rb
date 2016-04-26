@@ -91,7 +91,7 @@ class CrawlersController < ApplicationController
    f= File.join(Rails.root, 'log', "#{@crawler.name}_evented_crawler.log") 
    if File.exists?(f)
       @text = `tail -n 5000 #{f}`
-      render :text => @text.gsub("\n",'<br />')
+      render :text => "<pre>" + @text.gsub("\n",'<br />') + "</pre>"
    else
      render :text => "No logs found"
    end
