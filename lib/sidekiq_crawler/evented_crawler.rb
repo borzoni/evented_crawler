@@ -14,8 +14,8 @@ module SidekiqCrawler
           :host     => "localhost",
           :username => "crawlers_user",
           :password => "12345",
-          :database => "dev_cloth_crawlers",
-          :port => 5433
+          :database => "cloth_crawlers",
+          :port => 5432
       )
 
 
