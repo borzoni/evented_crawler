@@ -119,7 +119,7 @@ module SidekiqCrawler
     end
     
     def categories
-      categories ||= Item.where(:crawler_id => @crawler.id).pluck(:item_outer_category).flatten.uniq
+      categories ||= Item.where(:crawler_id => @crawler.id).pluck(:item_outer_category).flatten.uniq.compact
       return categories
     end
     def items
