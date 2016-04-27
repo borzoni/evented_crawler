@@ -17,7 +17,7 @@ module SidekiqCrawler
   class EventedCrawler
     include EM::Protocols
     
-    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, threshold, max_time, min_parsed, retries= nil )
+    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, threshold, max_time, min_parsed, concurrency_level, retries= nil )
       dbconfig = YAML.load(File.read('lib/sidekiq_crawler/crawler_db.yml'))
       ActiveRecord::Base.establish_connection dbconfig
       @url = url
@@ -32,7 +32,7 @@ module SidekiqCrawler
       @links_found = Set.new
       @links_todo = []
       @connections = 0
-      @CONCURRENT_CONNECTIONS = 50
+      @CONCURRENT_CONNECTIONS = concurrency_level
       @er = []
       @logger = logger
       @cards_counter = 0

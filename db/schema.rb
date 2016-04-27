@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160422101656) do
+ActiveRecord::Schema.define(version: 20160427112454) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -29,6 +29,7 @@ ActiveRecord::Schema.define(version: 20160422101656) do
     t.float    "items_threshold",        default: 0.5
     t.integer  "min_items_parsed",       default: 1000
     t.integer  "max_work_time",          default: 1800
+    t.integer  "concurrency_level",      default: 50
   end
 
   create_table "parsed_items", force: :cascade do |t|

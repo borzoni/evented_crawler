@@ -99,7 +99,7 @@ class CrawlersController < ApplicationController
   
   def start_crawler
     crawler = @crawler
-    args = [crawler.name, crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns, crawler.items_threshold, crawler.max_work_time, crawler.min_items_parsed]
+    args = [crawler.name, crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns, crawler.items_threshold, crawler.max_work_time, crawler.min_items_parsed, crawler.concurrency_level]
     Sidekiq::Client.push({
         'class' => SidekiqCrawler::Worker::CrawlerInstanceWorker,
         'queue' => 'crawlers',
@@ -120,7 +120,7 @@ class CrawlersController < ApplicationController
     
     def start_cron_job(crawler)
       name = "CrawlerJob_#{crawler.id}"
-      args = [crawler.name, crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns, crawler.items_threshold, crawler.max_work_time, crawler.min_items_parsed]
+      args = [crawler.name, crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns, crawler.items_threshold, crawler.max_work_time, crawler.min_items_parsed, crawler.concurrency_level]
       Sidekiq::Cron::Job.destroy name
       job = Sidekiq::Cron::Job.new(name: name, cron: crawler.periodicity, args: args, queue: 'crawlers', class: 'SidekiqCrawler::Worker::CrawlerInstanceWorker')
       if job.valid?
@@ -132,7 +132,7 @@ class CrawlersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def crawler_params
-      params.require(:crawler).permit(:name, :test_url, :url, :periodicity, :item_url_patterns, :selectors, :items_threshold, :min_items_parsed, :max_work_time, :blacklist_url_patterns, selectors: permit_recursive_params(params[:crawler][:selectors])) 
+      params.require(:crawler).permit(:name, :test_url, :url, :periodicity, :item_url_patterns, :selectors, :items_threshold, :min_items_parsed, :concurrency_level, :max_work_time, :blacklist_url_patterns, selectors: permit_recursive_params(params[:crawler][:selectors])) 
     end
     
 end

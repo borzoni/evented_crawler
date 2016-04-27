@@ -17,9 +17,9 @@ module SidekiqCrawler
     class CrawlerInstanceWorker
       include Sidekiq::Worker
 
-      def perform(name, crawler_id, url, selectors, blacklist_url_patterns, item_url_patterns, threshold, max_time, min_parsed)
+      def perform(name, crawler_id, url, selectors, blacklist_url_patterns, item_url_patterns, threshold, max_time, min_parsed, concurrency_level)
         l = setup_logger(name)
-        c = SidekiqCrawler::EventedCrawler.new(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns,l, threshold, max_time, min_parsed)
+        c = SidekiqCrawler::EventedCrawler.new(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns,l, threshold, max_time, min_parsed, concurrency_level)
         c.go
         SidekiqCrawler::Worker::CrawlerXMLWorker.sidekiq_options(:queue => "crawlers")
         SidekiqCrawler::Worker::CrawlerXMLWorker.perform_async(crawler_id, name)

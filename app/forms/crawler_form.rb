@@ -3,7 +3,7 @@ class CrawlerForm
   
   validate :validate_wrapped
   
-  delegate :name, :url, :periodicity, :items_threshold, :min_items_parsed, :max_work_time, :id, to: :crawler
+  delegate :name, :url, :periodicity, :items_threshold, :min_items_parsed, :max_work_time, :concurrency_level, :id, to: :crawler
    
   attr_accessor   :crawler, :test_url
       
@@ -29,7 +29,7 @@ class CrawlerForm
   end
   
   def process_params(params)
-    new_params = params.slice(:name, :url, :periodicity, :blacklist_url_patterns, :item_url_patterns, :selectors, :items_threshold, :min_items_parsed, :max_work_time)
+    new_params = params.slice(:name, :url, :periodicity, :blacklist_url_patterns, :item_url_patterns, :selectors, :items_threshold, :min_items_parsed, :max_work_time, :concurrency_level)
     new_params[:blacklist_url_patterns] = new_params[:blacklist_url_patterns].split(/\r\n/).map{|s| s.strip}.reject(&:empty?)
     new_params[:item_url_patterns] = new_params[:item_url_patterns].split(/\r\n/).map{|s| s.strip}.reject(&:empty?)
     new_params[:selectors].each{|k,v| new_params[:selectors][k] = v.to_json}

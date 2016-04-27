@@ -10,6 +10,7 @@
         = f.input :min_items_parsed, as: :text, label: "Минимальное число страниц обхода"
         = f.input :items_threshold, as: :text, label: "Максимальный порог 'пройдено страниц/страниц товара'"
         = f.input :max_work_time, as: :text, label: "Максимальное время работы(мин)"
+        = f.input :concurrency_level, as: :text, label: "Число одновременных соединений"
       = field_set_tag 'Селекторы' do  
         = f.simple_fields_for(f.object.selectors) do |ff|
           - f.object.selectors.each do |key, value|
