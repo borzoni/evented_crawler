@@ -20,7 +20,7 @@ set :branch, 'master'
 
 # Manually create these paths in shared/ (eg: shared/config/database.yml) in your server.
 # They will be linked in the 'deploy:link_shared_paths' step.
-set :shared_paths, ['config/database.yml', 'config/secrets.yml', 'log', 'lib/sidekiq_crawler/crawler_db.yml', 'ymls']
+set :shared_paths, ['config/database.yml', 'config/secrets.yml', 'log', 'lib/sidekiq_crawler/crawler_db.yml', 'public/ymls']
 
 # Optional settings:
 set :user, 'crawlers_user'    # Username in the server to SSH to.
