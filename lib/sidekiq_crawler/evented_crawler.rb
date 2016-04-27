@@ -5,20 +5,11 @@ require 'set'
 require 'addressable/uri'
 require 'time'
 require 'active_record'
+require 'yaml'
 require_relative './card_parser'
 require_relative './crawler_card_error'
 
 module SidekiqCrawler
-        ActiveRecord::Base.establish_connection(
-          :adapter  => "postgresql",
-          :host     => "localhost",
-          :username => "crawlers_user",
-          :password => "12345",
-          :database => "cloth_crawlers",
-          :port => 5432
-      )
-
-
       class Item < ActiveRecord::Base
         self.table_name = "parsed_items"
       end
@@ -27,6 +18,8 @@ module SidekiqCrawler
     include EM::Protocols
     
     def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, threshold, max_time, min_parsed, retries= nil )
+      dbconfig = YAML.load(File.read('lib/sidekiq_crawler/crawler_db.yml'))
+      ActiveRecord::Base.establish_connection dbconfig
       @url = url
       @threshold = threshold
       @max_time = max_time
@@ -209,9 +202,14 @@ module SidekiqCrawler
       end  
       EM.stop
     end
+    
+    def purge_items(id)
+      Item.where(crawler_id: id).delete_all
+    end
 
   # EventMachine reactor loop.
     def go
+      purge_items(@crawler_id)
       EM.run do
        EM.kqueue  
           @start_time = @tick_time = Time.now

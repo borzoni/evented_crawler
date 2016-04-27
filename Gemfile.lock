@@ -258,6 +258,7 @@ PLATFORMS
 DEPENDENCIES
   addressable
   bootstrap-sass
+  builder
   byebug
   capistrano
   capistrano-bundler

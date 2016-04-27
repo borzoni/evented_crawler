@@ -2,8 +2,18 @@ require 'sidekiq'
 require 'sidekiq/cron'
 require_relative  '../evented_crawler'
 require_relative  '../multi_logger'
+require_relative  '../crawler_xml_builder'
 module SidekiqCrawler
   module Worker
+    class CrawlerXMLWorker
+      include Sidekiq::Worker
+
+      def perform(crawler_id, name)
+        path = "ymls/#{name}_evented_crawler.yml"
+        SidekiqCrawler::CrawlerXMLBuilder.new(crawler_id, path).generate()    
+      end
+    end 
+  
     class CrawlerInstanceWorker
       include Sidekiq::Worker
 
@@ -11,6 +21,8 @@ module SidekiqCrawler
         l = setup_logger(name)
         c = SidekiqCrawler::EventedCrawler.new(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns,l, threshold, max_time, min_parsed)
         c.go
+        SidekiqCrawler::Worker::CrawlerXMLWorker.sidekiq_options(:queue => "crawlers")
+        SidekiqCrawler::Worker::CrawlerXMLWorker.perform_async(crawler_id, name)
       end
       
       private

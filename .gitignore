@@ -8,6 +8,7 @@
 /.bundle
 .rvmrc
 config/database.yml
+lib/sidekiq_crawler/crawler_db.yml
 config/secrets.yml
 # Ignore the default SQLite database.
 /db/*.sqlite3
@@ -16,6 +17,7 @@ config/secrets.yml
 # Ignore all logfiles and tempfiles.
 /log/*
 /tmp/*
+/ymls/*
 !/log/.keep
 !/tmp/.keep
 
