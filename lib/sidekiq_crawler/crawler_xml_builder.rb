@@ -52,7 +52,7 @@ module SidekiqCrawler
     def build_categories(yml)
       yml.categories do
         categories.each do |c|
-          yml.category c, id: get_hexdigest(c)[0..4]
+          yml.category(c.join("|"), id: get_hexdigest(c.last)[0..4]) if c and (!c.empty?)
         end    
       end
     end
@@ -66,20 +66,20 @@ module SidekiqCrawler
     def build_offer(yml, item, id)
       avlblty = item.item_availability||true
       category = item.item_outer_category.last if item.item_outer_category and (!item.item_outer_category.empty?)
-      category = get_hexdigest(category) if category
+      category = get_hexdigest(category)[0..4] if category
       sizes = join_array(item.item_sizes)
       colors = join_array(item.item_colors)
       imgs = make_imgs_array(item)
       
       yml.offer(:available => item.item_availability||true, id: id ) do
-        yml.categoryId category if category
+        yml.categoryId(category) if category
         yml.currencyId "RUR" 
         yml.description(item.item_desc) if item.item_desc
         yml.modified_time(get_datetime(true))
         yml.name(item.item_name) if item.item_name
         yml.param(item.item_sizes_scale, name: "Размерная сетка") if item.item_sizes_scale
         yml.param(sizes, name: "Размеры") if sizes
-        yml.param(item.item_composition, name: "Состав") if item.item_composition
+        yml.param(item.item_composition.join(","), name: "Состав") if item.item_composition
         build_images(yml, imgs)
         yml.price(item.item_price) if item.item_price
         yml.url(item.url) if item.url
@@ -119,7 +119,7 @@ module SidekiqCrawler
     end
     
     def categories
-      categories ||= Item.where(:crawler_id => @crawler.id).pluck(:item_outer_category).flatten.uniq.compact
+      categories ||= Item.where(:crawler_id => @crawler.id).pluck(:item_outer_category)
       return categories
     end
     def items

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160427112454) do
+ActiveRecord::Schema.define(version: 20160427150206) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -41,7 +41,7 @@ ActiveRecord::Schema.define(version: 20160427112454) do
     t.string   "item_sizes",                        array: true
     t.string   "item_sizes_scale"
     t.string   "item_colors",                       array: true
-    t.text     "item_composition"
+    t.string   "item_composition",                  array: true
     t.text     "item_characteristics"
     t.text     "item_main_img"
     t.text     "item_imgs",                         array: true
