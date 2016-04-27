@@ -52,7 +52,7 @@ module SidekiqCrawler
     def build_categories(yml)
       yml.categories do
         categories.each do |c|
-          yml.category c, id: get_hexdigest(c)
+          yml.category c, id: get_hexdigest(c)[0..4]
         end    
       end
     end
