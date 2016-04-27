@@ -23,6 +23,10 @@
           -else
             td = link_to 'Запуск', controller: "crawlers", action: "start_crawler", id: crawler.id, class: "btn btn-primary"
           td = link_to 'Логи', controller: "crawlers", action: "crawler_logs", id: crawler.id
+          -if File.exists?("public/ymls/#{crawler.name}_evented_crawler.xml")
+            td = link_to 'Скачать xml', "/ymls/#{crawler.name}_evented_crawler.xml", :rel => 'nofollow', :target => "_blank"
+          -else
+            td = "No xml file" 
           td = link_to 'Удалить', crawler, data: {:confirm => 'Точно?'}, :method => :delete
 
   br

@@ -9,7 +9,7 @@ module SidekiqCrawler
       include Sidekiq::Worker
 
       def perform(crawler_id, name)
-        path = "public/ymls/#{name}_evented_crawler.yml"
+        path = "public/ymls/#{name}_evented_crawler.xml"
         SidekiqCrawler::CrawlerXMLBuilder.new(crawler_id, path).generate()    
       end
     end 
