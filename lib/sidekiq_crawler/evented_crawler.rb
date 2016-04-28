@@ -128,7 +128,7 @@ module SidekiqCrawler
             puts e.message
             if @connections == 0
               finalize do
-                logger.error "Parser crashed - #{e.message}"
+                @logger.error "Parser crashed - #{e.message}"
               end
             end
         end
@@ -211,10 +211,9 @@ module SidekiqCrawler
     def go
       purge_items(@crawler_id)
       EM.run do
-       EM.kqueue  
-          @start_time = @tick_time = Time.now
-          @logger.info "Crawler started"
-          make_connection(@url)
+        @start_time = @tick_time = Time.now
+        @logger.info "Crawler started"
+        make_connection(@url)
       end
     rescue Exception => e
       puts e.message

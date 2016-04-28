@@ -22,7 +22,10 @@
             td = "Запущен"
           -else
             td = link_to 'Запуск', controller: "crawlers", action: "start_crawler", id: crawler.id, class: "btn btn-primary"
-          td = link_to 'Логи', controller: "crawlers", action: "crawler_logs", id: crawler.id
+          -if File.exists?("log/#{crawler.name}_evented_crawler.log")  
+            td = link_to 'Логи', controller: "crawlers", action: "crawler_logs", id: crawler.id, level: "INFO"
+          -else
+            td = "No logs found"   
           -if File.exists?("public/ymls/#{crawler.name}_evented_crawler.xml")
             td = link_to 'Скачать xml', "/ymls/#{crawler.name}_evented_crawler.xml", :rel => 'nofollow', :target => "_blank"
           -else

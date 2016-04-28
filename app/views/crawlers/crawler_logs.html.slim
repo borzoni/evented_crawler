@@ -1,0 +1,33 @@
+.container
+  h1 Логи
+  .col-md-6
+    = bootstrap_form_tag url: '/crawler_logs', layout: :horizontal do |f|
+      = f.hidden_field :id, value: @crawler.id
+      .row
+        .col-md-7
+          = f.select :level, @filters_select, { label: "Фильтр:", selected: @level }  
+        .col-md-4 
+          = f.check_box :include_upper, label: "Также уровни выше", checked: @include_upper
+        .col-md-1
+          = f.submit "Применить", class: 'btn btn-primary'
+-if @logs.empty?
+  = "No logs found for #{@level} level"
+- else 
+  .container 
+    h3 = "#{@logs.total_entries} entries found"
+    table.table.table-striped
+      thead
+        tr
+          th Ид
+          th Дата
+          th Уровень
+          th Сообщение
+      tbody
+        - @logs.each do |l|
+          tr
+            td = l[0]
+            td = l[1]
+            td = l[2]
+            td = l[3]
+    = will_paginate @logs, :params => {id: @crawler.id, level: @level, include_upper: @include_upper}, renderer: BootstrapPagination::Rails      
+        

@@ -1,3 +1,5 @@
+#ToDo factor out all sidekiq manipulation to helper class 
+require 'sidekiq/api'
 class CrawlersController < ApplicationController
   before_action :set_crawler, only: [:show, :edit, :update, :destroy, :crawler_logs, :start_crawler]
 
@@ -13,6 +15,14 @@ class CrawlersController < ApplicationController
          @in_progress[id] = true
        end
      end
+     q = Sidekiq::Queue.new "crawlers"
+     d = Sidekiq::ScheduledSet.new
+     d.each do |c|
+       @in_progress[c.args[1]] = true if c.klass == "SidekiqCrawler::Worker::CrawlerInstanceWorker"
+     end
+     q.each do |c|
+       @in_progress[c.args[1]] = true if c.klass == "SidekiqCrawler::Worker::CrawlerInstanceWorker"
+     end 
     @crawlers = Crawler.all
   end
 
@@ -38,7 +48,7 @@ class CrawlersController < ApplicationController
     @crawler_form.process_params(crawler_params)
     respond_to do |format|
       if @crawler_form.save
-        #start_cron_job @crawler_form.crawler
+        start_cron_job @crawler_form.crawler
         format.html { redirect_to @crawler_form.crawler, notice: 'Crawler was successfully created.' }
         format.json { render :show, status: :created, location: @crawler_form.crawler }
       else
@@ -67,7 +77,7 @@ class CrawlersController < ApplicationController
     @crawler_form.process_params(crawler_params)
     respond_to do |format|
       if @crawler_form.save
-        #start_cron_job @crawler_form.crawler
+        start_cron_job @crawler_form.crawler
         format.html { redirect_to @crawler_form.crawler, notice: 'Crawler was successfully updated.' }
         format.json { render :show, status: :ok, location: @crawler_form.crawler }
       else
@@ -88,27 +98,35 @@ class CrawlersController < ApplicationController
   end
   
   def crawler_logs
-   f= File.join(Rails.root, 'log', "#{@crawler.name}_evented_crawler.log") 
-   if File.exists?(f)
-      @text = `tail -n 5000 #{f}`
-      render :text => "<pre>" + @text.gsub("\n",'<br />') + "</pre>"
-   else
-     render :text => "No logs found"
-   end
+   #f= File.join(Rails.root, 'log', "#{@crawler.name}_evented_crawler.log") 
+   #if File.exists?(f)
+   #   @text = `tail -n 5000 #{f}`
+   #   render :text => "<pre>" + @text.gsub("\n",'<br />') + "</pre>"
+   #else
+   #  render :text => "No logs found"
+   #end
+   #raise(params.inspect)
+   filepath = "log/#{@crawler.name}_evented_crawler.log"
+   analyzer = LogAnalyzer::Analyzer.new(filepath)
+   @level = params[:level] || "INFO"
+   @include_upper = params[:include_upper] == "true" || params[:include_upper] == "1"
+   @counts = analyzer.get_counts
+   @filters_select = analyzer.levels.map{|l| ["#{l}(#{@counts[l.downcase.to_sym]})", l]} #for select tag
+   @logs = analyzer.get_lines(@level, @include_upper).paginate(:page =>params[:page] , :per_page => 10) 
   end
   
   def start_crawler
     crawler = @crawler
     args = [crawler.name, crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns, crawler.items_threshold, crawler.max_work_time, crawler.min_items_parsed, crawler.concurrency_level]
-    Sidekiq::Client.push({
+    jid = Sidekiq::Client.push({
         'class' => SidekiqCrawler::Worker::CrawlerInstanceWorker,
         'queue' => 'crawlers',
         'args'  => args
     })
-    sleep(1) # to test queue update.   
+    sleep(2) # to test queue update.   
     #SidekiqCrawler::Worker::CrawlerInstanceWorker.perform_async(args)
     respond_to do |format|
-      format.html {redirect_to crawler, notice: 'Crawler was started' } 
+      format.html {redirect_to crawlers_path, notice: 'Crawler was started' } 
     end  
   end
 

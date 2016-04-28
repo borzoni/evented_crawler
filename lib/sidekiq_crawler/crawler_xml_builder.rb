@@ -52,7 +52,7 @@ module SidekiqCrawler
     def build_categories(yml)
       yml.categories do
         categories.each do |c|
-          yml.category(c.join("|"), id: get_hexdigest(c.last)[0..4]) if c and (!c.empty?)
+          yml.category(c.join("| "), id: get_hexdigest(c.last)[0..4]) if c and (!c.empty?)
         end    
       end
     end

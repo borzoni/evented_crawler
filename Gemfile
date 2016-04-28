@@ -28,6 +28,9 @@ gem 'jbuilder', '~> 2.0'
 
 gem 'slim-rails'
 gem 'builder'
+gem 'will_paginate'
+gem 'will_paginate-bootstrap'
+gem 'bootstrap_form'
 gem 'bootstrap-sass'
 gem 'simple_form'
 gem 'sinatra', github: 'sinatra', :require => nil

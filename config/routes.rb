@@ -4,7 +4,7 @@ Rails.application.routes.draw do
     resources :parsed_items, :only => [:index]
   end
   match "/test_crawler" => "crawlers#test", :via => :post
-  get "/crawler_logs/:id", :to => "crawlers#crawler_logs"
+  match "/crawler_logs", :to => "crawlers#crawler_logs", via: [:get, :post]
   get "/start_crawler/:id", :to => "crawlers#start_crawler"
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
