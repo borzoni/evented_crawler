@@ -19,7 +19,7 @@
           td = link_to 'Посмотреть', crawler_parsed_items_path(crawler), class: "btn btn-primary"
           td = link_to 'Настройки', edit_crawler_path(crawler)
           - if @in_progress[crawler.id]
-            td = "Запущен"
+            td = link_to 'Стоп', controller: "crawlers", action: "stop_crawler", id: crawler.id, class: "btn btn-primary"
           -else
             td = link_to 'Запуск', controller: "crawlers", action: "start_crawler", id: crawler.id, class: "btn btn-primary"
           -if File.exists?("log/#{crawler.name}_evented_crawler.log")  

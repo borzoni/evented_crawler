@@ -1,29 +1,17 @@
 #ToDo factor out all sidekiq manipulation to helper class 
 require 'sidekiq/api'
 class CrawlersController < ApplicationController
-  before_action :set_crawler, only: [:show, :edit, :update, :destroy, :crawler_logs, :start_crawler]
+  before_action :set_crawler, only: [:show, :edit, :update, :destroy, :crawler_logs, :start_crawler, :stop_crawler]
 
   # GET /crawlers
   # GET /crawlers.json
   def index
-     @in_progress = {}
-     
-     w =Sidekiq::Workers.new
-     w.each do |process_id, thread_id, work|
-       if work["payload"]["class"] == "SidekiqCrawler::Worker::CrawlerInstanceWorker"
-         id = work["payload"]["args"][1]
-         @in_progress[id] = true
-       end
-     end
-     q = Sidekiq::Queue.new "crawlers"
-     d = Sidekiq::ScheduledSet.new
-     d.each do |c|
-       @in_progress[c.args[1]] = true if c.klass == "SidekiqCrawler::Worker::CrawlerInstanceWorker"
-     end
-     q.each do |c|
-       @in_progress[c.args[1]] = true if c.klass == "SidekiqCrawler::Worker::CrawlerInstanceWorker"
-     end 
+    @in_progress = {}
     @crawlers = Crawler.all
+    @crawlers.each do |c|
+      job = SidekiqHelper::Client.new(c)
+      @in_progress[c.id] = job.in_progress? 
+    end  
   end
 
   # GET /crawlers/1
@@ -48,7 +36,7 @@ class CrawlersController < ApplicationController
     @crawler_form.process_params(crawler_params)
     respond_to do |format|
       if @crawler_form.save
-        start_cron_job @crawler_form.crawler
+        SidekiqHelper::Client.new(@crawler_form.crawler).schedule_crawler()
         format.html { redirect_to @crawler_form.crawler, notice: 'Crawler was successfully created.' }
         format.json { render :show, status: :created, location: @crawler_form.crawler }
       else
@@ -77,7 +65,7 @@ class CrawlersController < ApplicationController
     @crawler_form.process_params(crawler_params)
     respond_to do |format|
       if @crawler_form.save
-        start_cron_job @crawler_form.crawler
+        SidekiqHelper::Client.new(@crawler_form.crawler).schedule_crawler()
         format.html { redirect_to @crawler_form.crawler, notice: 'Crawler was successfully updated.' }
         format.json { render :show, status: :ok, location: @crawler_form.crawler }
       else
@@ -116,19 +104,20 @@ class CrawlersController < ApplicationController
   end
   
   def start_crawler
-    crawler = @crawler
-    args = [crawler.name, crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns, crawler.items_threshold, crawler.max_work_time, crawler.min_items_parsed, crawler.concurrency_level]
-    jid = Sidekiq::Client.push({
-        'class' => SidekiqCrawler::Worker::CrawlerInstanceWorker,
-        'queue' => 'crawlers',
-        'args'  => args
-    })
-    sleep(2) # to test queue update.   
-    #SidekiqCrawler::Worker::CrawlerInstanceWorker.perform_async(args)
+    SidekiqHelper::Client.new(@crawler).start_crawler()   
     respond_to do |format|
       format.html {redirect_to crawlers_path, notice: 'Crawler was started' } 
     end  
   end
+  
+  def stop_crawler
+    SidekiqHelper::Client.new(@crawler).stop_crawler()   
+    respond_to do |format|
+      format.html {redirect_to crawlers_path, notice: 'Crawler was stopped' } 
+    end  
+  end
+  
+  
 
   private
     # Use callbacks to share common setup or constraints between actions.
@@ -136,18 +125,6 @@ class CrawlersController < ApplicationController
       @crawler = Crawler.find(params[:id])
     end
     
-    def start_cron_job(crawler)
-      name = "CrawlerJob_#{crawler.id}"
-      args = [crawler.name, crawler.id, crawler.url, crawler.selectors, crawler.blacklist_url_patterns, crawler.item_url_patterns, crawler.items_threshold, crawler.max_work_time, crawler.min_items_parsed, crawler.concurrency_level]
-      Sidekiq::Cron::Job.destroy name
-      job = Sidekiq::Cron::Job.new(name: name, cron: crawler.periodicity, args: args, queue: 'crawlers', class: 'SidekiqCrawler::Worker::CrawlerInstanceWorker')
-      if job.valid?
-        job.save
-      else
-        puts "CRON SIDEKIQ: #{job.errors}"
-      end  
-    end
-
     # Never trust parameters from the scary internet, only allow the white list through.
     def crawler_params
       params.require(:crawler).permit(:name, :test_url, :url, :periodicity, :item_url_patterns, :selectors, :items_threshold, :min_items_parsed, :concurrency_level, :max_work_time, :blacklist_url_patterns, selectors: permit_recursive_params(params[:crawler][:selectors])) 

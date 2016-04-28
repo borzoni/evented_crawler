@@ -17,7 +17,7 @@ module SidekiqCrawler
   class EventedCrawler
     include EM::Protocols
     
-    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, threshold, max_time, min_parsed, concurrency_level, retries= nil )
+    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, threshold, max_time, min_parsed, concurrency_level, cancel, retries= nil )
       dbconfig = YAML.load(File.read('lib/sidekiq_crawler/crawler_db.yml'))
       ActiveRecord::Base.establish_connection dbconfig
       @url = url
@@ -29,6 +29,7 @@ module SidekiqCrawler
       @selectors = selectors
       @blacklisted = blacklist_url_patterns
       @card_url_pattern = item_url_patterns
+      @cancel_check = cancel
       @links_found = Set.new
       @links_todo = []
       @connections = 0
@@ -85,11 +86,7 @@ module SidekiqCrawler
             end
         end
     end
-    
-    def get_er
-      @er
-    end
-    
+   
     def issue_connection
       unless @links_todo.empty? or @connections > @CONCURRENT_CONNECTIONS
          make_connection(@links_todo.pop) 
@@ -100,6 +97,7 @@ module SidekiqCrawler
         # Set the base for the first run.
         @base ||= Addressable::URI.parse(Addressable::URI.unencode(url))
         begin
+            crawler_cancel_check()
             conn_opts = {:connect_timeout => 60, :inactivity_timeout => 60}
             req = EventMachine::HttpRequest.new(url, conn_opts).get :head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html", 'Accept-Language' => 'ru,en-US', :cookies => {:country_iso => 'RU'}}, :redirects => 5
             #request in progress
@@ -152,6 +150,14 @@ module SidekiqCrawler
           @logger.error "Maximum effective parsing threshold of #{@threshold} reached. Stopping ..."
         end
       end 
+    end
+    
+    def crawler_cancel_check
+      if @cancel_check .call()
+        finalize do
+          @logger.info "Received manual terminatation signal. Stopping ..."
+        end       
+      end
     end
     
     def process_card(url, req)
@@ -208,7 +214,7 @@ module SidekiqCrawler
     end
 
   # EventMachine reactor loop.
-    def go
+    def go()
       purge_items(@crawler_id)
       EM.run do
         @start_time = @tick_time = Time.now

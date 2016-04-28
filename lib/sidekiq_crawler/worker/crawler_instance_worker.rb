@@ -3,6 +3,7 @@ require 'sidekiq/cron'
 require_relative  '../evented_crawler'
 require_relative  '../multi_logger'
 require_relative  '../crawler_xml_builder'
+
 module SidekiqCrawler
   module Worker
     class CrawlerXMLWorker
@@ -13,22 +14,31 @@ module SidekiqCrawler
         SidekiqCrawler::CrawlerXMLBuilder.new(crawler_id, path).generate()    
       end
     end 
-  
     class CrawlerInstanceWorker
       include Sidekiq::Worker
 
       def perform(name, crawler_id, url, selectors, blacklist_url_patterns, item_url_patterns, threshold, max_time, min_parsed, concurrency_level)
         l = setup_logger(name)
-        c = SidekiqCrawler::EventedCrawler.new(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns,l, threshold, max_time, min_parsed, concurrency_level)
+        c = SidekiqCrawler::EventedCrawler.new(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns,l, threshold, max_time, min_parsed, concurrency_level, method(:cancelled?))
         c.go()
-        process_xml(name, crawler_id)
+        return if cancelled?
+        generate_xml(name, crawler_id)
+      end
+      
+      def cancelled?
+        
+        Sidekiq.redis {|c| c.exists("cancelled-#{jid}") }
+      end
+
+      def self.cancel!(jid)
+        Sidekiq.redis {|c| c.setex("cancelled-#{jid}", 86400, 1) }
       end
       
       private
-      def process_xml(name, crawler_id)
-        SidekiqCrawler::Worker::CrawlerXMLWorker.sidekiq_options(:queue => "crawlers")
-        SidekiqCrawler::Worker::CrawlerXMLWorker.perform_async(crawler_id, name)
-      end
+       def generate_xml(name, crawler_id)
+         SidekiqCrawler::Worker::CrawlerXMLWorker.sidekiq_options(:queue => "crawlers")
+         SidekiqCrawler::Worker::CrawlerXMLWorker.perform_async(crawler_id, name)
+       end
        def setup_logger(name)
          File.delete("log/#{name}_evented_crawler.log") if File.exist?("log/#{name}_evented_crawler.log")
          l1 = Logger.new("log/#{name}_evented_crawler.log")
