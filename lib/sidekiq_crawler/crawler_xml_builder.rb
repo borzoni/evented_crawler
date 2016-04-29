@@ -15,21 +15,25 @@ module SidekiqCrawler
   end
       
   class CrawlerXMLBuilder
-    def initialize(crawler_id, file_path)
+    def initialize(crawler_id, file_path, logger)
       dbconfig = YAML.load(File.read('lib/sidekiq_crawler/crawler_db.yml'))
       ActiveRecord::Base.establish_connection dbconfig
       @file = File.new(file_path, "wb")
+      @logger = logger
       @crawler = Crawler.find(crawler_id)
       @builder = Builder::XmlMarkup.new(:target => @file, :indent=>2)
     end
     
     def generate
+      start_time = Time.now
+      @logger.info "XML generation started"
       @builder.yml_catalog(date: get_datetime(false)) do
         build_header(@builder)
         build_currencies(@builder)
         build_categories(@builder)
         build_offers(@builder)
       end  
+      @logger.info "XML generation finished in #{Time.now - start_time} secs. File: #{@file.path}(#{@file.size} bytes)"
       @file.close()
     end
     
