@@ -46,14 +46,25 @@ class CrawlersController < ApplicationController
     end
   end
   
-  def test
+  def test_selectors
     selectors = {}
     crawler_params["selectors"].each{|k,v| selectors[k] = v.to_json}
-    parser = SidekiqCrawler::CardParser.new crawler_params["test_url"], selectors
+    parser = SidekiqCrawler::CardParser.new crawler_params["test_url2"], selectors
     results = parser.fetch_page.parse
     render :json => results
   rescue SidekiqCrawler::CrawlerCardError => e
     render :json => {error: e.message}  
+  rescue => e
+    render :json => {error: "Bad input: #{e.message} "}    
+  end
+  
+  def test_url
+    black_patters = crawler_params["blacklist_url_patterns"].split(/\r\n/).map{|s| s.strip}.reject(&:empty?)
+    item_patterns = crawler_params["item_url_patterns"].split(/\r\n/).map{|s| s.strip}.reject(&:empty?) 
+    checker = SidekiqCrawler::UrlChecker.new(black_patters, item_patterns, crawler_params["test_url1"].strip)
+    blacklisted = checker.blacklisted?
+    item = checker.item?
+    render :json => [blacklisted, item]
   rescue => e
     render :json => {error: "Bad input: #{e.message} "}    
   end
@@ -127,7 +138,7 @@ class CrawlersController < ApplicationController
     
     # Never trust parameters from the scary internet, only allow the white list through.
     def crawler_params
-      params.require(:crawler).permit(:name, :test_url, :url, :periodicity, :item_url_patterns, :selectors, :items_threshold, :min_items_parsed, :concurrency_level, :max_work_time, :blacklist_url_patterns, selectors: permit_recursive_params(params[:crawler][:selectors])) 
+      params.require(:crawler).permit(:name, :test_url1,:test_url2, :url, :periodicity, :item_url_patterns, :selectors, :items_threshold, :min_items_parsed, :concurrency_level, :max_work_time, :blacklist_url_patterns, selectors: permit_recursive_params(params[:crawler][:selectors])) 
     end
     
 end

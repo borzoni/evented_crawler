@@ -5,6 +5,7 @@ require_relative './crawler_card_error'
 
 module SidekiqCrawler
   class CardParser
+    
     def initialize(url, settings)
      @url = url
      @settings = settings.symbolize_keys   

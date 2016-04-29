@@ -7,16 +7,27 @@ ul.nav.nav-tabs id="tabs"
   = f.error_notification       
   .tab_content
     .tab-pane.in.active.fade id="common"
-      = field_set_tag 'Настройки' do
-        = f.input :name, label: "Название"
-        = f.input :url, label: "Урл"
-        = f.input :periodicity, label: "Периодичность парсинга"
-        = f.input :item_url_patterns, as: :text, label: "Регулярки для карточки товаров"
-        = f.input :blacklist_url_patterns, as: :text, label: "Регулярки для игнорируемых страниц"
-        = f.input :min_items_parsed, as: :text, label: "Минимальное число страниц обхода"
-        = f.input :items_threshold, as: :text, label: "Максимальный порог 'пройдено страниц/страниц товара'"
-        = f.input :max_work_time, as: :text, label: "Максимальное время работы(мин)"
-        = f.input :concurrency_level, as: :text, label: "Число одновременных соединений"
+      .row
+        .col-md-6
+          = field_set_tag 'Настройки' do
+            = f.input :name, label: "Название"
+            = f.input :url, label: "Урл"
+            = f.input :periodicity, label: "Периодичность парсинга"
+            = f.input :item_url_patterns, as: :text, label: "Регулярки для карточки товаров"
+            = f.input :blacklist_url_patterns, as: :text, label: "Регулярки для игнорируемых страниц"
+            = f.input :min_items_parsed, as: :text, label: "Минимальное число страниц обхода"
+            = f.input :items_threshold, as: :text, label: "Максимальный порог 'пройдено страниц/страниц товара'"
+            = f.input :max_work_time, as: :text, label: "Максимальное время работы(мин)"
+            = f.input :concurrency_level, as: :text, label: "Число одновременных соединений"
+        .col-md-6        
+          = field_set_tag 'Протестировать урл', id: "test_urls" do 
+            = f.input :test_url1, wrapper: :horizontal_input_group do
+                = f.input_field :test_url1, class: "form-control"
+                span.input-group-btn
+                  = f.submit 'Тест', class: 'btn btn-primary', name: 'test_url_page', id: 'test_url_page'
+            br
+            br      
+            = content_tag(:div, nil, id: 'filler_info_url')  
     .tab-pane.fade.row id="selectors"
       .row
         .col-md-6
@@ -24,15 +35,15 @@ ul.nav.nav-tabs id="tabs"
             = f.simple_fields_for(f.object.selectors) do |ff|
              - f.object.selectors.each do |key, value|
                  =ff.input key, as: :hash_extracted_collection, required: false
-        .col-md-5        
+        .col-md-6        
           = field_set_tag 'Протестировать селекторы', id: "test_selectors" do 
-            = f.input :test_url, wrapper: :horizontal_input_group do
-                = f.input_field :test_url, class: "form-control"
+            = f.input :test_url2, wrapper: :horizontal_input_group do
+                = f.input_field :test_url2, class: "form-control"
                 span.input-group-btn
-                  = f.submit 'Тест', class: 'btn btn-primary', name: 'test_crawler', id: 'test_crawler'
+                  = f.submit 'Тест', class: 'btn btn-primary', name: 'test_selectors', id: 'test_selectors'
             br
             br      
-            = content_tag(:div, nil,class: 'filler_info')      
+            = content_tag(:div, nil, id: 'filler_info_selectors')      
    
   .form-actions.row
     .col-md-6

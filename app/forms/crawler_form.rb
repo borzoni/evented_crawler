@@ -5,7 +5,7 @@ class CrawlerForm
   
   delegate :name, :url, :periodicity, :items_threshold, :min_items_parsed, :max_work_time, :concurrency_level, :id, to: :crawler
    
-  attr_accessor   :crawler, :test_url
+  attr_accessor   :crawler, :test_url1, :test_url2
       
   def initialize(obj=nil)
     @crawler = obj || Crawler.new

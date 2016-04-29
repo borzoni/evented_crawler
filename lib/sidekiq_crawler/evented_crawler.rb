@@ -16,6 +16,7 @@ module SidekiqCrawler
       
   class EventedCrawler
     include EM::Protocols
+    include SidekiqCrawler::UrlCheckable
     
     def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, threshold, max_time, min_parsed, concurrency_level, cancel, retries= nil )
       dbconfig = YAML.load(File.read('lib/sidekiq_crawler/crawler_db.yml'))
@@ -42,23 +43,6 @@ module SidekiqCrawler
       @finalized = false
       @tick_time = nil
       @base = nil
-    end
-
-    def url_blacklisted?(url)
-      return true if (url =~/\.(png|jpg|jpeg|bmp)$/)
-      @blacklisted.each do |p|
-        r = Regexp.new(p)
-        return true if (url =~ r)
-      end  
-      false
-    end
-    
-    def url_item_card?(url)
-      @card_url_pattern.each do |p|
-        r = Regexp.new(p)
-        return true if url =~ r
-      end
-      false      
     end
 
     def get_inner_links(root, content)
