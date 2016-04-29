@@ -24,7 +24,7 @@ module SidekiqCrawler
 
       def perform(name, crawler_id, url, selectors, blacklist_url_patterns, item_url_patterns, threshold, max_time, min_parsed, concurrency_level)
         l = setup_logger(name)
-        c = SidekiqCrawler::EventedCrawler.new(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns,l, threshold, max_time, min_parsed, concurrency_level, method(:cancelled?))
+        c = SidekiqCrawler::EventedCrawler.new(name, crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns,l, threshold, max_time, min_parsed, concurrency_level, method(:cancelled?))
         c.go()
         return if cancelled?
         generate_xml(name, crawler_id)

@@ -1,0 +1,73 @@
+.container
+  h1 Dashboard
+  
+  .panel.panel-primary.accordion
+    .panel-heading
+      a class="accordion-toggle job-toggle" data-toggle="collapse" data-parent=".accordion" href="#collapseOne" 
+        span
+          i.glyphicon.glyphicon-chevron-down 
+          ="Running jobs"         
+
+    .panel-collapse.collapse.in id="collapseOne"
+      .panel-body
+        table.table.table-stripped
+          thead
+            tr
+              th Name
+              th Url
+              th Items
+              th Requests
+              th Parse Errors
+              th Connection Errors
+              th Start
+              th Finish
+              th Status
+          tbody
+            -@running.each do |s|
+              tr
+                td= s.name
+                td= s.url
+                td= s.items
+                td= s.requests
+                td= s.parse_errors
+                td= s.connection_errors
+                td= Time.at(s.start_time.to_i).strftime("%Y-%m-%d %H:%M")
+                td= Time.at(s.finish_time.to_i).strftime("%Y-%m-%d %H:%M")
+                td= s.status 
+                
+                  
+  .panel.panel-primary.accordion
+      .panel-heading
+        a class="accordion-toggle collapsed job-toggle" data-toggle="collapse" data-parent=".accordion" href="#collapseTwo" 
+          span
+            i.glyphicon.glyphicon-chevron-down 
+            ="Finished jobs"  
+
+      .panel-collapse.collapse id="collapseTwo"
+        .panel-body
+          table.table.table-stripped
+            thead
+              tr
+                th Name
+                th Url
+                th Items
+                th Requests
+                th Parse Errors
+                th Connection Errors
+                th Start
+                th Finish
+                th Status
+            tbody
+              -@finished.each do |s|
+                tr
+                  td= s.name
+                  td= s.url
+                  td= s.items
+                  td= s.requests
+                  td= s.parse_errors
+                  td= s.connection_errors
+                  td= Time.at(s.start_time.to_i).strftime("%Y-%m-%d %H:%M")
+                  td= Time.at(s.finish_time.to_i).strftime("%Y-%m-%d %H:%M")
+                  td= s.status                 
+                
+                

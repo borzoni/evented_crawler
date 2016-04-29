@@ -1,15 +1,11 @@
 .container
-  br
-  .row
-    .col-md-2
-      = link_to 'К списку краулеров', crawlers_path, class: 'btn btn-default'
   h1 Результаты парсинга
   h3 = "#{@parsed_items.total_entries} entries found"
   
   -if @stats
      h3 Статистика
      .row
-       .col-md-3
+       .col-md-5
           table.table.table-striped
             tbody  
             -@stats.each do |k,v|

@@ -1,8 +1,4 @@
 .container
-  br
-  .row
-    .col-md-2
-      = link_to 'К списку краулеров', crawlers_path, class: 'btn btn-default'
   h1 Логи
   .col-md-6
     = bootstrap_form_tag url: '/crawler_logs', layout: :horizontal do |f|

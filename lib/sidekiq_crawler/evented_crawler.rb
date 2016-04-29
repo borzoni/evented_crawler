@@ -20,11 +20,12 @@ module SidekiqCrawler
     include EM::Protocols
     include SidekiqCrawler::UrlCheckable
     
-    def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, threshold, max_time, min_parsed, concurrency_level, cancel, retries= nil )
+    def initialize(name, crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, threshold, max_time, min_parsed, concurrency_level, cancel, retries= nil )
       dbconfig = YAML.load(File.read('lib/sidekiq_crawler/crawler_db.yml'))
       ActiveRecord::Base.establish_connection dbconfig
       @session = SidekiqCrawler::CrawlerSession.create
       @url = url
+      @name = name
       @threshold = threshold
       @max_time = max_time
       @min_parsed = min_parsed
@@ -220,7 +221,7 @@ module SidekiqCrawler
       EM.run do
         @start_time = @tick_time = Time.now
         @logger.info "Crawler started"
-        @session.update(crawler_id: @crawler_id, start_time: @start_time.to_i, status: "running")
+        @session.update(crawler_id: @crawler_id, start_time: @start_time.to_i, name: @name, url: @url, status: "running")
         make_connection(@url)
       end 
     rescue Exception => e

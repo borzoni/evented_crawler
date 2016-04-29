@@ -10,6 +10,8 @@ module SidekiqCrawler
     attribute :finish_time
     counter :requests
     attribute :status
+    attribute :name
+    attribute :url
     index :crawler_id
     index :status
   end

@@ -10,6 +10,17 @@
   </head>
 
   <body>
+   <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">ClothesCrawlers</a>
+        </div>
+        <ul class="nav navbar-nav">
+          <li class="<%= 'active' if current_page?(dashboard_path) %>"><a href="/dashboard">Dashboard</a></li>
+          <li class="<%= 'active' if current_page?(crawlers_path) %>"><a href="/crawlers">Crawlers</a></li>
+        </ul>
+      </div>
+   </nav>
     <%= yield %>
   </body>
 </html>

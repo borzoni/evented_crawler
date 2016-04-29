@@ -30,7 +30,7 @@ module SidekiqCrawler
         text = temp['selector_text']
         eval_flag = false
         
-        if text.start_with?('page') 
+        if text[/\(*page/]
           eval_flag = true
         end
         begin

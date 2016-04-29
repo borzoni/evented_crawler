@@ -18,6 +18,11 @@ class CrawlersController < ApplicationController
   # GET /crawlers/1.json
   def show
   end
+  
+  def dashboard
+    @running = SidekiqCrawler::CrawlerSession.find(status: "running")
+    @finished = SidekiqCrawler::CrawlerSession.find(status: "finished").union(status: "error").union(status: "stopped")
+  end
 
   # GET /crawlers/new
   def new
