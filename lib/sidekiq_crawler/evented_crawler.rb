@@ -163,10 +163,12 @@ module SidekiqCrawler
       parser = SidekiqCrawler::CardParser.new(url, @selectors)
       parser.set_page(req.response)
       results = parser.parse
-      item = Item.find_or_create_by(url: url, crawler_id: @crawler_id)
-      item.update(results.merge({:url => url, :domain_url => @base}))
-      @cards_saved_counter += 1
-      @session.increment :items
+      if !results.empty?
+        item = Item.find_or_create_by(url: url, crawler_id: @crawler_id)
+        item.update(results.merge({:url => url, :domain_url => @base}))
+        @cards_saved_counter += 1
+        @session.increment :items
+      end  
     rescue SidekiqCrawler::CrawlerCardError => e
       @cards_errors_counter += 1
       @session.increment :parse_errors
