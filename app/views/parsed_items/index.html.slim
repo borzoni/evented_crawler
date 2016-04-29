@@ -32,7 +32,7 @@
             img src="#{p.item_main_img}" class="img_parsed_item"
             = p.item_price
           td 
-            = p.item_desc.truncate(150)
+            = p.item_desc.truncate(150) if p.item_desc
             br
               = "Категория:  " +  p.item_outer_category.join(" | ") if p.item_outer_category
           td 
