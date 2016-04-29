@@ -2,7 +2,7 @@
 # All this logic will automatically be available in application.js.
 # You can use CoffeeScript in this file: http://coffeescript.org/
    
-typeIsArray = Array.isArray || ( value ) -> return {}.toString.call( value ) is '[object Array]'   
+typeIsArray = Array.isArray || ( value ) -> return {}.toString.call( value ) is '[object Array]' 
 $(document).on 'ready', (e) -> 
     $('input[type="submit"]').on 'click', ->
       $('form.new_crawler, form.edit_crawler').data('button', this.name)

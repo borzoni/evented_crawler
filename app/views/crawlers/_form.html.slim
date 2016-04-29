@@ -1,6 +1,12 @@
-  = simple_form_for @crawler_form do |f|
-    .col-md-6
-      = f.error_notification
+ul.nav.nav-tabs id="tabs"
+  li.active
+    a data-toggle="tab"  href = "#common" = "Общие"
+  li
+    a data-toggle="tab" href="#selectors"= "Селекторы"
+= simple_form_for @crawler_form do |f|
+  = f.error_notification       
+  .tab_content
+    .tab-pane.in.active.fade id="common"
       = field_set_tag 'Настройки' do
         = f.input :name, label: "Название"
         = f.input :url, label: "Урл"
@@ -11,19 +17,24 @@
         = f.input :items_threshold, as: :text, label: "Максимальный порог 'пройдено страниц/страниц товара'"
         = f.input :max_work_time, as: :text, label: "Максимальное время работы(мин)"
         = f.input :concurrency_level, as: :text, label: "Число одновременных соединений"
-      = field_set_tag 'Селекторы' do  
-        = f.simple_fields_for(f.object.selectors) do |ff|
-          - f.object.selectors.each do |key, value|
-             =ff.input key, as: :hash_extracted_collection, required: false
-      
+    .tab-pane.fade.row id="selectors"
+      .row
+        .col-md-6
+          = field_set_tag 'Селекторы' do  
+            = f.simple_fields_for(f.object.selectors) do |ff|
+             - f.object.selectors.each do |key, value|
+                 =ff.input key, as: :hash_extracted_collection, required: false
+        .col-md-5        
+          = field_set_tag 'Протестировать селекторы', id: "test_selectors" do 
+            = f.input :test_url, wrapper: :horizontal_input_group do
+                = f.input_field :test_url, class: "form-control"
+                span.input-group-btn
+                  = f.submit 'Тест', class: 'btn btn-primary', name: 'test_crawler', id: 'test_crawler'
+            br
+            br      
+            = content_tag(:div, nil,class: 'filler_info')      
    
-      .form-actions
-        = link_to 'Назад', crawlers_path, class: 'btn btn-default'
-        = f.submit 'Сохранить', class: 'btn btn-primary', name: 'save_crawler', id: 'save_crawler'
+  .form-actions.row
     .col-md-6
-      = field_set_tag 'Протестировать селекторы' do 
-        = f.input :test_url, wrapper: :horizontal_input_group do
-            = f.input_field :test_url, class: "form-control"
-            span.input-group-btn
-              = f.submit 'Тест', class: 'btn btn-primary', name: 'test_crawler', id: 'test_crawler'
-        = content_tag(:div, nil,class: 'filler_info')
+     = link_to 'К списку краулеров', crawlers_path, class: 'btn btn-default'
+     = f.submit 'Сохранить', class: 'btn btn-primary', name: 'save_crawler', id: 'save_crawler'
