@@ -13,13 +13,9 @@ module SidekiqCrawler
 
       def perform(crawler_id, name)
         path = "public/ymls/#{name}_evented_crawler.xml"
-        l = setup_logger(name, false, get_count(path))
+        log_path = "log"
+        l = setup_logger(name, false, true)
         SidekiqCrawler::CrawlerXMLBuilder.new(crawler_id, path, l).generate()    
-      end
-      
-      private
-      def get_count(filepath)
-        `wc -l "#{filepath}"`.strip.to_i
       end
     end 
     class CrawlerInstanceWorker

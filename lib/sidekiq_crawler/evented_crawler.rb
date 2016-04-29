@@ -8,6 +8,8 @@ require 'active_record'
 require 'yaml'
 require_relative './card_parser'
 require_relative './crawler_card_error'
+require_relative './crawler_session'
+require_relative './url_checkable'
 
 module SidekiqCrawler
       class Item < ActiveRecord::Base
@@ -21,6 +23,7 @@ module SidekiqCrawler
     def initialize(crawler_id, url, selectors,blacklist_url_patterns, item_url_patterns, logger, threshold, max_time, min_parsed, concurrency_level, cancel, retries= nil )
       dbconfig = YAML.load(File.read('lib/sidekiq_crawler/crawler_db.yml'))
       ActiveRecord::Base.establish_connection dbconfig
+      @session = SidekiqCrawler::CrawlerSession.create
       @url = url
       @threshold = threshold
       @max_time = max_time
@@ -43,6 +46,7 @@ module SidekiqCrawler
       @finalized = false
       @tick_time = nil
       @base = nil
+      @requests = 0
     end
 
     def get_inner_links(root, content)
@@ -88,10 +92,13 @@ module SidekiqCrawler
             req = EventMachine::HttpRequest.new(url, conn_opts).get :head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html", 'Accept-Language' => 'ru,en-US', :cookies => {:country_iso => 'RU'}}, :redirects => 5
             #request in progress
             @connections += 1
+            @requests += 1
+            @session.increment :requests
             check_border_conditions if @links_found.size >= @min_parsed
             req.errback do |r| 
               process_response do
                 @er << r
+                @session.increment :connection_errors
                 @logger.error "#{r.conn.uri} - #{r.error}"
               end  
             end
@@ -112,6 +119,7 @@ module SidekiqCrawler
             puts e.message
             if @connections == 0
               finalize do
+                @session.update(status: "error", finish_time: Time.now.to_i)
                 @logger.error "Parser crashed - #{e.message}"
               end
             end
@@ -129,10 +137,12 @@ module SidekiqCrawler
     def check_border_conditions
       if ((Time.now - @start_time)/60)>= @max_time
         finalize do
+          @session.update(status: "error", finish_time: Time.now.to_i)
           @logger.error "Maximum running time of #{@max_time} mins reached. Stopping ..."
         end
       elsif (@cards_counter.to_f/@links_found.size) < @threshold
         finalize do
+          @session.update(status: "error", finish_time: Time.now.to_i)
           @logger.error "Maximum effective parsing threshold of #{@threshold} reached. Stopping ..."
         end
       end 
@@ -141,6 +151,7 @@ module SidekiqCrawler
     def crawler_cancel_check
       if @cancel_check .call()
         finalize do
+          @session.update(status: "stopped", finish_time: Time.now.to_i)
           @logger.info "Received manual terminatation signal. Stopping ..."
         end       
       end
@@ -154,11 +165,14 @@ module SidekiqCrawler
       item = Item.find_or_create_by(url: url, crawler_id: @crawler_id)
       item.update(results.merge({:url => url, :domain_url => @base}))
       @cards_saved_counter += 1
+      @session.increment :items
     rescue SidekiqCrawler::CrawlerCardError => e
       @cards_errors_counter += 1
+      @session.increment :parse_errors
       @logger.error "#{url} - #{e.selector_message}"    
     rescue => e
       @cards_errors_counter += 1
+      @session.increment :parse_errors
       @logger.error "#{url} - #{e.message}" 
     end
     
@@ -175,6 +189,7 @@ module SidekiqCrawler
       end
       if @links_todo.empty? and @connections == 0
         finalize do
+          @session.update(status: "finished", finish_time: Time.now.to_i)
           @logger.info "Successfully finished #{@url} parsing task" 
         end
       end
@@ -205,6 +220,7 @@ module SidekiqCrawler
       EM.run do
         @start_time = @tick_time = Time.now
         @logger.info "Crawler started"
+        @session.update(crawler_id: @crawler_id, start_time: @start_time.to_i, status: "running")
         make_connection(@url)
       end 
     rescue Exception => e
