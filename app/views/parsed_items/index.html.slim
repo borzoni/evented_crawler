@@ -28,9 +28,12 @@
         tr
           td 
             a href="#{p.url}"target="_blank"  =p.item_name 
-            = p.item_brand 
-            img src="#{p.item_main_img}" class="img_parsed_item"
-            = p.item_price
+            br
+              = p.item_brand 
+            br  
+              img src="#{p.item_main_img}" class="img_parsed_item"
+            br
+              = p.item_price
           td 
             = p.item_desc.truncate(150) if p.item_desc
             br
