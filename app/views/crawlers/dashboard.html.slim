@@ -20,7 +20,6 @@
               th Parse Errors
               th Connection Errors
               th Start
-              th Finish
               th Status
           tbody
             -@running.each do |s|
@@ -31,8 +30,7 @@
                 td= s.requests
                 td= s.parse_errors
                 td= s.connection_errors
-                td= Time.at(s.start_time.to_i).strftime("%Y-%m-%d %H:%M")
-                td= Time.at(s.finish_time.to_i).strftime("%Y-%m-%d %H:%M")
+                td= Time.at(s.start_time.to_i).strftime("%Y-%m-%d %H:%M") 
                 td= s.status 
                 
                   
