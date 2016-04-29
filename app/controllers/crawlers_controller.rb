@@ -100,7 +100,7 @@ class CrawlersController < ApplicationController
    @include_upper = params[:include_upper] == "true" || params[:include_upper] == "1"
    @counts = analyzer.get_counts
    @filters_select = analyzer.levels.map{|l| ["#{l}(#{@counts[l.downcase.to_sym]})", l]} #for select tag
-   @logs = analyzer.get_lines(@level, @include_upper).paginate(:page =>params[:page] , :per_page => 10) 
+   @logs = analyzer.get_lines(@level, @include_upper).paginate(:page =>params[:page] , :per_page => 1000) 
   end
   
   def start_crawler
