@@ -30,8 +30,9 @@
             a href="#{p.url}"target="_blank"  =p.item_name 
             br
               = p.item_brand 
-            br  
-              img src="#{p.item_main_img}" class="img_parsed_item"
+            -if p.item_main_img  
+              br  
+                img src="#{p.item_main_img}" class="img_parsed_item"
             br
               = p.item_price
           td 
