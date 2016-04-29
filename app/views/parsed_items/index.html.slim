@@ -45,8 +45,9 @@
             = p.item_composition.join(", ") if p.item_composition
           td = p.item_characteristics
           td 
-            - p.item_imgs.each_with_index  do |val, i|
-              a href="#{val}" target="_blank" = i+1
+            -if p.item_imgs
+              - p.item_imgs.each_with_index  do |val, i|
+                a href="#{val}" target="_blank" = i+1
               
           td = p.item_availability
   = will_paginate @parsed_items, renderer: BootstrapPagination::Rails        
