@@ -10,29 +10,30 @@
 
     .panel-collapse.collapse.in id="collapseOne"
       .panel-body
-        table.table.table-stripped
-          thead
-            tr
-              th Name
-              th Url
-              th Items
-              th Requests
-              th Parse Errors
-              th Connection Errors
-              th Start
-              th Status
-          tbody
-            -@running.each do |s|
+        -if !@running.empty?
+          table.table.table-stripped
+            thead
               tr
-                td= s.name
-                td= s.url
-                td= s.items
-                td= s.requests
-                td= s.parse_errors
-                td= s.connection_errors
-                td= Time.at(s.start_time.to_i).strftime("%Y-%m-%d %H:%M") 
-                td= s.status 
-                
+                th Name
+                th Url
+                th Items
+                th Requests
+                th Parse Errors
+                th Connection Errors
+                th Start
+                th Status
+            tbody
+              -@running.each do |s|
+                tr
+                  td= s.name
+                  td= s.url
+                  td= s.items
+                  td= s.requests
+                  td= s.parse_errors
+                  td= s.connection_errors
+                  td= Time.at(s.start_time.to_i).strftime("%Y-%m-%d %H:%M") 
+                  td= s.status 
+                  
                   
   .panel.panel-primary.accordion
       .panel-heading
