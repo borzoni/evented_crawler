@@ -47,7 +47,10 @@
               = p.item_colors.join(", ") if p.item_colors
             td  
               = p.item_composition.join(", ") if p.item_composition
-            td = p.item_characteristics
+            td 
+              - if p.item_characteristics
+                - p.item_characteristics.each do |k,v|
+                  p="#{k}: #{v}"
             td 
               -if p.item_imgs
                 - p.item_imgs.each_with_index  do |val, i|

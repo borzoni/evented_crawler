@@ -58,6 +58,11 @@ module SidekiqCrawler
       end      
     end
     
+    def types_convert(a)
+       return Hash[a] if a.instance_of?(Array) and a.all?{|j| j.instance_of?(Array) and j.size == 2}  #hash supposed
+       return a
+    end
+    
     def empty_selector?(s)
       return false if  s.is_a?(Numeric)
       return (!s||s==""||s.empty?)
@@ -69,7 +74,8 @@ module SidekiqCrawler
     
     def apply_selectors(page,selector, eval_flag)
       eval_flag ? result= eval(selector) : result = page.css(selector)
-      normalize_results(result)   
+      res  = normalize_results(result)   
+      types_convert(res)
     end
 
   end
