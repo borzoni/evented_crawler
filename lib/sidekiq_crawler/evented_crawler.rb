@@ -86,7 +86,6 @@ module SidekiqCrawler
         
         # Set the base for the first run.
         @base ||= Addressable::URI.parse(Addressable::URI.unencode(url))
-        #puts "make req #{rand(10)}" if @crawler_id == 3
         begin
             crawler_cancel_check()
             conn_opts = {:connect_timeout => 60, :inactivity_timeout => 60}
