@@ -5,7 +5,7 @@ module SidekiqCrawler
     extend ActiveSupport::Concern
     
     def url_blacklisted?(url)
-      return true if (url =~/\.(png|jpg|jpeg|bmp)$/)
+      return true if (url =~/\.(png|jpg|jpeg|bmp)$/i)
       @blacklisted.each do |p|
         r = Regexp.new(p)
         return true if (url =~ r)
