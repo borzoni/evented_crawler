@@ -82,17 +82,19 @@ $(document).on 'ready', (e) ->
     if $("#crawler_test_url2").length
       s = window.location.pathname.split("/")[2]
       url = localStorage.getItem("testUrl2-#{s}")
-      $("#crawler_test_url2").val(url)
-      click_btn = ()-> 
-        $( "input#test_selectors" ).click()
-      setTimeout(click_btn, 100)
+      if url
+        $("#crawler_test_url2").val(url)
+        click_btn = ()-> 
+          $( "input#test_selectors" ).click()
+        setTimeout(click_btn, 100)
       
     if $("#crawler_test_url1").length
       s = window.location.pathname.split("/")[2]
       url = localStorage.getItem("testUrl1-#{s}")
-      $("#crawler_test_url1").val(url) 
-      click_btn = ()-> 
-        $("#test_url_page" ).click()
-      setTimeout(click_btn, 100) 
+      if url
+        $("#crawler_test_url1").val(url) 
+        click_btn = ()-> 
+          $("#test_url_page" ).click()
+        setTimeout(click_btn, 100) 
       
 
