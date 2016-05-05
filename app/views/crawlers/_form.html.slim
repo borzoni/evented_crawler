@@ -13,12 +13,12 @@ ul.nav.nav-tabs id="tabs"
             = f.input :name, label: "Название"
             = f.input :url, label: "Урл"
             = f.input :periodicity, label: "Периодичность парсинга"
-            = f.input :item_url_patterns, as: :text, label: "Регулярки для карточки товаров"
-            = f.input :blacklist_url_patterns, as: :text, label: "Регулярки для игнорируемых страниц"
-            = f.input :min_items_parsed, as: :text, label: "Минимальное число страниц обхода"
-            = f.input :items_threshold, as: :text, label: "Максимальный порог 'пройдено страниц/страниц товара'"
-            = f.input :max_work_time, as: :text, label: "Максимальное время работы(мин)"
-            = f.input :concurrency_level, as: :text, label: "Число одновременных соединений"
+            = f.input :item_url_patterns, as: :text, label: "Регулярки для карточки товаров",  :input_html => { :rows => 3 }
+            = f.input :blacklist_url_patterns, as: :text, label: "Регулярки для игнорируемых страниц",  :input_html => { :rows => 3 }
+            = f.input :min_items_parsed, label: "Минимальное число страниц обхода"
+            = f.input :items_threshold, label: "Максимальный порог 'пройдено страниц/страниц товара'"
+            = f.input :max_work_time, label: "Максимальное время работы(мин)"
+            = f.input :concurrency_level, label: "Число одновременных соединений"
         .col-md-6        
           = field_set_tag 'Протестировать урл', id: "test_urls" do 
             = f.input :test_url1, wrapper: :horizontal_input_group do
@@ -27,7 +27,7 @@ ul.nav.nav-tabs id="tabs"
                   = f.submit 'Тест', class: 'btn btn-primary', name: 'test_url_page', id: 'test_url_page'
             br
             br      
-            = content_tag(:div, nil, id: 'filler_info_url')  
+            = content_tag(:div, nil, id: 'filler_info_url', class: "col-md-12")  
     .tab-pane.fade.row id="selectors"
       .row
         .col-md-6
@@ -43,7 +43,7 @@ ul.nav.nav-tabs id="tabs"
                   = f.submit 'Тест', class: 'btn btn-primary', name: 'test_selectors', id: 'test_selectors'
             br
             br      
-            = content_tag(:div, nil, id: 'filler_info_selectors')      
+            = content_tag(:div, nil, id: 'filler_info_selectors', class: "col-md-12")      
    
   .form-actions.row
     .col-md-6

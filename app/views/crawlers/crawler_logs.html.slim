@@ -1,15 +1,13 @@
 .container
   h1 Логи
   .col-md-6
-    = bootstrap_form_tag url: '/crawler_logs', layout: :horizontal do |f|
-      = f.hidden_field :id, value: @crawler.id
-      .row
-        .col-md-7
-          = f.select :level, @filters_select, { label: "Фильтр:", selected: @level }  
-        .col-md-4 
-          = f.check_box :include_upper, label: "Также уровни выше", checked: @include_upper
-        .col-md-1
-          = f.submit "Применить", class: 'btn btn-primary'
+    .row
+      .col-md-2
+        = link_to "INFO", crawler_logs_path(id: @crawler.id, :level => "INFO")
+      .col-md-2 
+        = link_to "DEBUG", crawler_logs_path(id: @crawler.id, :level => "DEBUG")
+      .col-md-2
+        = link_to "ERROR", crawler_logs_path(id: @crawler.id, :level => "ERROR")
 -if @logs.empty?
   = "No logs found for #{@level} level"
 - else 

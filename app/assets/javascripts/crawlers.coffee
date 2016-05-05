@@ -14,6 +14,9 @@ $(document).on 'ready', (e) ->
        
        $(this).submit() if submitButton == 'save_crawler'
        if submitButton == 'test_url_page'
+         url = $("#crawler_test_url1").val()
+         s = window.location.pathname.split("/")[2]
+         localStorage.setItem("testUrl1-#{s}",url);
          valuesToSubmit = $(this).serializeArray();
          newVals = valuesToSubmit.map (v) -> 
             return {"name": "_method", "value": "post"} if v.name == '_method'
@@ -41,6 +44,9 @@ $(document).on 'ready', (e) ->
          })
          return false    
        if submitButton == 'test_selectors'
+         s = window.location.pathname.split("/")[2]
+         url = $("#crawler_test_url2").val()
+         localStorage.setItem("testUrl2-#{s}",url);
          valuesToSubmit = $(this).serializeArray();
          newVals = valuesToSubmit.map (v) -> 
             return {"name": "_method", "value": "post"} if v.name == '_method'
@@ -62,14 +68,31 @@ $(document).on 'ready', (e) ->
                   found_count = 1
                   if typeIsArray v
                     found_count = v.length
-                  found_text = "(#{found_count})Найдено - #{v}"  
+                  found_text = "#{found_count} - #{v}"  
                 else
                   found_text = "Не найдено"  
                     
-                html = html + "<div class='row'><div class='col-sm-6'>#{k}</div><div class='col-sm-6'>#{found_text}</div></div>"
+                html = html + "<div class='row'><div class='col-sm-2'>#{k}</div><div class='col-sm-10'>#{found_text}</div><hr></div>"
             
             $("#filler_info_selectors").empty()    
             $("#filler_info_selectors").append(html)
          })
          return false; 
-       
+  
+    if $("#crawler_test_url2").length
+      s = window.location.pathname.split("/")[2]
+      url = localStorage.getItem("testUrl2-#{s}")
+      $("#crawler_test_url2").val(url)
+      click_btn = ()-> 
+        $( "input#test_selectors" ).click()
+      setTimeout(click_btn, 100)
+      
+    if $("#crawler_test_url1").length
+      s = window.location.pathname.split("/")[2]
+      url = localStorage.getItem("testUrl1-#{s}")
+      $("#crawler_test_url1").val(url) 
+      click_btn = ()-> 
+        $("#test_url_page" ).click()
+      setTimeout(click_btn, 100) 
+      
+

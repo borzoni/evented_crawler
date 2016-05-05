@@ -47,7 +47,6 @@ module SidekiqCrawler
       @finalized = false
       @tick_time = nil
       @base = nil
-      @requests = 0
     end
 
     def get_inner_links(root, content)
@@ -92,7 +91,6 @@ module SidekiqCrawler
             req = EventMachine::HttpRequest.new(url, conn_opts).get :head => {"User-Agent" => "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html", 'Accept-Language' => 'ru,en-US', :cookies => {:country_iso => 'RU'}}, :redirects => 5
             #request in progress
             @connections += 1
-            @requests += 1
             @session.increment :requests
             check_border_conditions if @links_found.size >= @min_parsed
             req.errback do |r| 
@@ -137,13 +135,13 @@ module SidekiqCrawler
     def check_border_conditions
       if ((Time.now - @start_time)/60)>= @max_time
         finalize do
-          @session.update(status: "error", finish_time: Time.now.to_i)
-          @logger.error "Maximum running time of #{@max_time} mins reached. Stopping ..."
+          @session.update(status: "finished", finish_time: Time.now.to_i)
+          @logger.info "Maximum running time of #{@max_time} mins reached. Stopping ..."
         end
       elsif (@cards_counter.to_f/@links_found.size) < @threshold
         finalize do
-          @session.update(status: "error", finish_time: Time.now.to_i)
-          @logger.error "Maximum effective parsing threshold of #{@threshold} reached. Stopping ..."
+          @session.update(status: "finished", finish_time: Time.now.to_i)
+          @logger.info "Maximum effective parsing threshold of #{@threshold} reached. Stopping ..."
         end
       end 
     end
@@ -208,6 +206,7 @@ module SidekiqCrawler
         @logger.info "Processed card links: #{@cards_counter}"
         @logger.info "Succesfully processed card links: #{@cards_saved_counter}"
         @logger.info "Failed card links: #{@cards_errors_counter} "
+        @session.save
       end  
       EM.stop
     end

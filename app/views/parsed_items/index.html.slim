@@ -12,6 +12,7 @@
               tr
                 td = k
                 td = "#{v[:count]}(#{v[:percentage]}%)"
+                td = link_to "Посмотреть пустые", crawler_parsed_items_path(@crawler,:field => k) if v[:percentage] < 100
   - if (@parsed_items.total_entries > 0)
     table.table.table-striped
       thead

@@ -20,8 +20,8 @@ class CrawlersController < ApplicationController
   end
   
   def dashboard
-    @running = SidekiqCrawler::CrawlerSession.find(status: "running")
-    @finished = SidekiqCrawler::CrawlerSession.find(status: "finished").union(status: "error").union(status: "stopped")
+    @running = SidekiqCrawler::CrawlerSession.find(status: "running").sort(order: "DESC", limit: [0,20])
+    @finished = SidekiqCrawler::CrawlerSession.find(status: "finished").union(status: "error").union(status: "stopped").sort(order: "DESC", limit: [0,20])
   end
 
   # GET /crawlers/new
@@ -42,7 +42,7 @@ class CrawlersController < ApplicationController
     respond_to do |format|
       if @crawler_form.save
         SidekiqHelper::Client.new(@crawler_form.crawler).schedule_crawler()
-        format.html { redirect_to @crawler_form.crawler, notice: 'Crawler was successfully created.' }
+        format.html { redirect_to crawlers_path, notice: 'Crawler was successfully created.' }
         format.json { render :show, status: :created, location: @crawler_form.crawler }
       else
         format.html { render :new }
@@ -82,7 +82,7 @@ class CrawlersController < ApplicationController
     respond_to do |format|
       if @crawler_form.save
         SidekiqHelper::Client.new(@crawler_form.crawler).schedule_crawler()
-        format.html { redirect_to @crawler_form.crawler, notice: 'Crawler was successfully updated.' }
+        format.html { redirect_to crawlers_path, notice: 'Crawler was successfully updated.' }
         format.json { render :show, status: :ok, location: @crawler_form.crawler }
       else
         format.html { render :edit }
@@ -115,7 +115,7 @@ class CrawlersController < ApplicationController
    @level = params[:level] || "INFO"
    @include_upper = params[:include_upper] == "true" || params[:include_upper] == "1"
    @counts = analyzer.get_counts
-   @filters_select = analyzer.levels.map{|l| ["#{l}(#{@counts[l.downcase.to_sym]})", l]} #for select tag
+   #@filters_select = analyzer.levels.map{|l| ["#{l}(#{@counts[l.downcase.to_sym]})", l]} #for select tag
    @logs = analyzer.get_lines(@level, @include_upper).paginate(:page =>params[:page] , :per_page => 1000) 
   end
   

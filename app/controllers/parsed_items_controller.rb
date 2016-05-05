@@ -2,7 +2,12 @@ class ParsedItemsController < ApplicationController
   before_filter :load_crawler
   
   def index
-    @parsed_items = @crawler.parsed_items.paginate(:page =>params[:page] , :per_page => 50) 
+    if !params[:field]
+      @parsed_items = @crawler.parsed_items
+    else
+      @parsed_items = @crawler.parsed_items.where(params[:field].to_sym => nil)
+    end   
+    @parsed_items = @parsed_items.paginate(:page =>params[:page] , :per_page => 50) 
     if !@parsed_items.empty?
       @stats = calculate_percentages()
     end  

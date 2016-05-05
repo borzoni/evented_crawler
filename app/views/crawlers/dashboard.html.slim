@@ -27,10 +27,10 @@
                 tr
                   td= s.name
                   td= s.url
-                  td= s.items
-                  td= s.requests
-                  td= s.parse_errors
-                  td= s.connection_errors
+                  td= link_to "#{s.items}", crawler_parsed_items_path(s.crawler_id)
+                  td= link_to "#{s.requests}", crawler_logs_path(id:s.crawler_id, :level => "DEBUG")
+                  td= link_to "#{s.parse_errors}", crawler_logs_path(id:s.crawler_id, :level => "ERROR")
+                  td= link_to "#{s.connection_errors}", crawler_logs_path(id:s.crawler_id, :level => "ERROR")
                   td= Time.at(s.start_time.to_i).strftime("%Y-%m-%d %H:%M") 
                   td= s.status 
                   
@@ -42,31 +42,32 @@
             i.glyphicon.glyphicon-chevron-down 
             ="Finished jobs"  
 
-      .panel-collapse.collapse id="collapseTwo"
+      .panel-collapse.collapse.in id="collapseTwo"
         .panel-body
-          table.table.table-stripped
-            thead
-              tr
-                th Name
-                th Url
-                th Items
-                th Requests
-                th Parse Errors
-                th Connection Errors
-                th Start
-                th Finish
-                th Status
-            tbody
-              -@finished.each do |s|
+          -if !@finished.empty?
+            table.table.table-stripped
+              thead
                 tr
-                  td= s.name
-                  td= s.url
-                  td= s.items
-                  td= s.requests
-                  td= s.parse_errors
-                  td= s.connection_errors
-                  td= Time.at(s.start_time.to_i).strftime("%Y-%m-%d %H:%M")
-                  td= Time.at(s.finish_time.to_i).strftime("%Y-%m-%d %H:%M")
-                  td= s.status                 
-                
-                
+                  th Name
+                  th Url
+                  th Items
+                  th Requests
+                  th Parse Errors
+                  th Connection Errors
+                  th Start
+                  th Finish
+                  th Status
+              tbody
+                -@finished.each do |s|
+                  tr
+                    td= s.name
+                    td= s.url
+                    td= link_to "#{s.items}", crawler_parsed_items_path(s.crawler_id)
+                    td= link_to "#{s.requests}", crawler_logs_path(id:s.crawler_id, :level => "DEBUG")
+                    td= link_to "#{s.parse_errors}", crawler_logs_path(id:s.crawler_id, :level => "ERROR")
+                    td= link_to "#{s.connection_errors}", crawler_logs_path(id:s.crawler_id, :level => "ERROR")
+                    td= Time.at(s.start_time.to_i).strftime("%Y-%m-%d %H:%M")
+                    td= Time.at(s.finish_time.to_i).strftime("%Y-%m-%d %H:%M")
+                    td= s.status                 
+                  
+                  
