@@ -3,7 +3,10 @@
 # You can use CoffeeScript in this file: http://coffeescript.org/
    
 typeIsArray = Array.isArray || ( value ) -> return {}.toString.call( value ) is '[object Array]' 
-
+getType =  (elem) -> 
+  return Object.prototype.toString.call(elem).slice(8, -1)
+isObject = (elem) -> 
+  return getType(elem) == 'Object'
 
 $(document).on 'ready', (e) -> 
     $('input[type="submit"]').on 'click', ->
@@ -68,7 +71,10 @@ $(document).on 'ready', (e) ->
                   found_count = 1
                   if typeIsArray v
                     found_count = v.length
+                  if isObject(v)
+                    v = JSON.stringify(v)
                   found_text = "#{found_count} - #{v}"  
+                  console.log()
                 else
                   found_text = "Не найдено"  
                     
