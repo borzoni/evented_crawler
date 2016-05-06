@@ -67,15 +67,16 @@ module SidekiqCrawler
       yml.url @crawler.url
     end
     
-    def build_offer(yml, item, id)
+    def build_offer(yml, item)
       avlblty = item.item_availability||true
       category = item.item_outer_category.last if item.item_outer_category and (!item.item_outer_category.empty?)
       category = get_hexdigest(category)[0..4] if category
       sizes = join_array(item.item_sizes)
       colors = join_array(item.item_colors)
       imgs = make_imgs_array(item)
+      url_hash = get_hexdigest(item.url)[0..7] if item.url
       
-      yml.offer(:available => item.item_availability||true, id: id ) do
+      yml.offer(:available => item.item_availability||true, :id => url_hash||"None" ) do
         yml.categoryId(category) if category
         yml.currencyId "RUR" 
         yml.description(item.item_desc) if item.item_desc
@@ -107,12 +108,8 @@ module SidekiqCrawler
     end
     
     def build_offers(yml)
-      i = 1
       yml.offers do 
-        items.find_each do |item|
-          build_offer(yml, item, i)
-          i+= 1
-        end  
+        items.find_each{|item| build_offer(yml, item) }
       end
     end
     
