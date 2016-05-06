@@ -161,8 +161,7 @@ module SidekiqCrawler
       parser.set_page(req.response)
       results = parser.parse
       if !results.empty?
-        item = Item.find_or_create_by(url: url, crawler_id: @crawler_id)
-        item.update(results.merge({:url => url, :domain_url => @base}))
+        Item.create(results.merge({:url => url, :domain_url => @base, crawler_id: @crawler_id}))
         @cards_saved_counter += 1
         @session.increment :items
       end  
