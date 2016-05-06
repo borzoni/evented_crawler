@@ -85,11 +85,16 @@ module SidekiqCrawler
         yml.param(item.item_sizes_scale, name: "Размерная сетка") if item.item_sizes_scale
         yml.param(sizes, name: "Размеры") if sizes
         yml.param(item.item_composition.join(","), name: "Состав") if item.item_composition
+        build_characteristics(yml, item) if item.item_characteristics
         build_images(yml, imgs)
         yml.price(item.item_price) if item.item_price
         yml.url(item.url) if item.url
         yml.vendor(item.item_brand) if item.item_brand
       end  
+    end
+    
+    def build_characteristics(yml, item)
+      item.item_characteristics.each{|k,v| yml.param(v, name: k)}
     end
     
     def join_array(items_ar)
