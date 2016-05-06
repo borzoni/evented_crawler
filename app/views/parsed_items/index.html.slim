@@ -50,8 +50,8 @@
               = p.item_composition.join(", ") if p.item_composition
             td 
               - if p.item_characteristics
-                - p.item_characteristics.each do |k,v|
-                  p="#{k}: #{v}"
+                - p.item_characteristics.each do |h|
+                  p="#{h.keys[0]}: #{h.values[0]}"
             td 
               -if p.item_imgs
                 - p.item_imgs.each_with_index  do |val, i|

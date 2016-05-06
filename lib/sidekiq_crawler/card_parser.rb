@@ -42,7 +42,7 @@ module SidekiqCrawler
         next if empty_selector?(res)
         result[k] = res
       end
-      result
+      convert_to_json(result)
     end
     
     private
@@ -50,32 +50,49 @@ module SidekiqCrawler
       return normalize_str(input) if (input.instance_of? String) 
       return input if  ([true, false].include? input) ||(input.is_a?(Numeric))
       if input.instance_of?(Nokogiri::XML::Node) || input.instance_of?(Nokogiri::XML::NodeSet)
-        return input.text
+        return normalize_str(input.text)
       elsif input.instance_of?(Array)
         return input.map{|e| normalize_results(e)}
+      elsif input.instance_of?(Hash)
+        return stringify_hash(input)
       else
         return input  
       end      
     end
     
     def types_convert(a)
-       return Hash[a] if a.instance_of?(Array) and a.all?{|j| j.instance_of?(Array) and j.size == 2}  #hash supposed
+       return a.map{|el| Hash[*el]} if a.instance_of?(Array) and a.all?{|j| j.instance_of?(Array) and j.size == 2}  #hash supposed
        return a
     end
     
     def empty_selector?(s)
       return false if  s.is_a?(Numeric)
-      return (!s||s==""||s.empty?)
+      return (s==nil||(instance_of?(Array) and s.empty?))
     end
     
     def normalize_str(str)
       str.strip.gsub(/\s+/, " ")
     end
     
+    def stringify_hash(h)
+      h.inject({}) do |options, (key, value)|
+        skey = normalize_str(key.to_s)
+        svalue =  normalize_str(value.to_s)
+        options[skey] = svalue
+        options
+      end
+    end
+    
     def apply_selectors(page,selector, eval_flag)
       eval_flag ? result= eval(selector) : result = page.css(selector)
-      res  = normalize_results(result)   
-      types_convert(res)
+      res  = normalize_results(types_convert(result))
+    end
+    
+    def convert_to_json(res)
+      if res["item_characteristics"] 
+        res["item_characteristics"] = res["item_characteristics"].to_json
+      end
+      res
     end
 
   end

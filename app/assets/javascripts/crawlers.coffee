@@ -67,13 +67,11 @@ $(document).on 'ready', (e) ->
               html ="<p>#{json.error}</p>"
             else
               for k,v of json
-                if v
+                if v || v ==""
                   found_count = 1
                   if typeIsArray v
                     found_count = v.length
-                  if isObject(v)
-                    v = JSON.stringify(v)
-                  found_text = "#{found_count} - #{v}"  
+                  found_text = "#{found_count} - #{JSON.stringify(v)}"  
                   console.log()
                 else
                   found_text = "Не найдено"  

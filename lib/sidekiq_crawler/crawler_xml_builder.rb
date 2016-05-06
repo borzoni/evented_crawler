@@ -94,7 +94,7 @@ module SidekiqCrawler
     end
     
     def build_characteristics(yml, item)
-      item.item_characteristics.each{|k,v| yml.param(v, name: k)}
+      item.item_characteristics.each{|h| yml.param(h.values[0], name: h.keys[0])}
     end
     
     def join_array(items_ar)
