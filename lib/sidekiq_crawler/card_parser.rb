@@ -53,7 +53,7 @@ module SidekiqCrawler
      @field_checker[:item_brand]=@field_checker[:item_brand]=@field_checker[:item_name]=@field_checker[:item_desc]=@field_checker[:item_sizes_scale]=@field_checker[:item_main_img] = String
      @field_checker[:item_outer_category] = @field_checker[:item_sizes] = @field_checker[:item_colors] = @field_checker[:item_imgs] = @field_checker[:item_composition] = [lambda{|i| i.instance_of?(Array) and i.all?{|j| j.instance_of?(String)}}, "Array of Strings"]  
      @field_checker[:item_availability] = [lambda{|i| [true, false].include?(i)}, "Boolean"]
-     @field_checker[:item_availability] = [lambda{|i| i.instance_of?(Array) and i.all?{|j| j.instance_of?(Hash)}}, "Array of Hashes"]
+     @field_checker[:item_characteristics] = [lambda{|i| i.instance_of?(Array) and i.all?{|j| j.instance_of?(Hash)}}, "Array of Hashes"]
     end
     
     def check_field(selector_key, input)
