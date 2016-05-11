@@ -8,7 +8,8 @@ module SidekiqCrawler
     
     def initialize(url, settings)
      @url = url
-     @settings = settings.symbolize_keys   
+     @settings = settings.symbolize_keys
+     fill_types()
     end
     
     def fetch_page
@@ -46,6 +47,19 @@ module SidekiqCrawler
     end
     
     private
+    def fill_types
+     @field_checker = {}
+     @field_checker[:item_brand]=@field_checker[:item_brand]=@field_checker[:item_name]=@field_checker[:item_desc]=@field_checker[:item_sizes_scale]=@field_checker[:item_main_img] = String
+     @field_checker[:item_outer_category] = @field_checker[:item_sizes] = @field_checker[:item_colors] = @field_checker[:item_imgs] = @field_checker[:item_composition] = [lambda{|i| i.instance_of?(Array) and i.all?{|j| j.instance_of?(String)}}, "Array of Strings"]  
+     @field_checker[:item_availability] = [lambda{|i| [true, false].include?(i)}, "Boolean"]
+     @field_checker[:item_availability] = [lambda{|i| i.instance_of?(Array) and i.all?{|j| j.instance_of?(Hash)}}, "Array of Hashes"]
+    
+    end
+    
+    def check_field(type, item)
+        
+    end
+    
     def normalize_results(input)
       return normalize_str(input) if (input.instance_of? String) 
       return input if  ([true, false].include? input) ||(input.is_a?(Numeric))
@@ -86,6 +100,10 @@ module SidekiqCrawler
     def apply_selectors(page,selector, eval_flag)
       eval_flag ? result= eval(selector) : result = page.css(selector)
       res  = normalize_results(types_convert(result))
+    end
+    
+    def make_type_error(selector, expected, got)
+     raise SidekiqCrawler::CrawlerCardError.new(selector, "#{selector} invalid. Expected #{expected}, got #{got}", :type_error)
     end
     
     def convert_to_json(res)
