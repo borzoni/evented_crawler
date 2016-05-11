@@ -51,7 +51,7 @@ module SidekiqCrawler
     def fill_types
      @field_checker = {}
      @field_checker[:item_brand]=@field_checker[:item_brand]=@field_checker[:item_name]=@field_checker[:item_desc]=@field_checker[:item_sizes_scale]=@field_checker[:item_main_img] = String
-     @field_checker[:item_outer_category] = @field_checker[:item_sizes] = @field_checker[:item_colors] = @field_checker[:item_imgs] = @field_checker[:item_composition] = [lambda{|i| i.instance_of?(Array) and i.all?{|j| j.instance_of?(String)}}, "Array of Strings"]  
+     @field_checker[:item_outer_category] = @field_checker[:item_sizes] = @field_checker[:item_colors] = @field_checker[:item_imgs] = @field_checker[:item_composition] = [lambda{|i| i.instance_of?(Array)  and i.all?{|j| j.instance_of?(String)}}, "Array of Strings"]  
      @field_checker[:item_availability] = [lambda{|i| [true, false].include?(i)}, "Boolean"]
      @field_checker[:item_characteristics] = [lambda{|i| i.instance_of?(Array) and i.all?{|j| j.instance_of?(Hash)}}, "Array of Hashes"]
     end
@@ -60,10 +60,22 @@ module SidekiqCrawler
       check = @field_checker[selector_key.to_sym]
       return if !check
       if check.instance_of?(Class)
-        make_type_error(selector_key, check.class, input.class)  if !input.instance_of?(check) 
+        make_type_error(selector_key, check.class, coerce_input_types(input))  if !input.instance_of?(check) 
       elsif check.instance_of?(Array)
-        make_type_error(selector_key, check[1], input.class) if !(check[0].call(input))  
+        make_type_error(selector_key, check[1], coerce_input_types(input)) if !(check[0].call(input))  
       end
+    end
+    
+    def coerce_input_types(input)
+      input_class = input.class
+      res = input_class.to_s
+      if input.instance_of?(Array)
+        item_classes = Set.new
+        input.each{|i| item_classes.add(i.class)}
+        res  += " of  #{item_classes.to_a.join(", ")}"
+      end
+      return res
+      
     end
     
     def normalize_results(input)

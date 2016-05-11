@@ -148,7 +148,7 @@ module SidekiqCrawler
     end
     
     def crawler_cancel_check
-      if @cancel_check .call()
+      if @cancel_check.call()
         finalize do
           @session.update(status: "stopped", finish_time: Time.now.to_i)
           @logger.info "Received manual terminatation signal. Stopping ..."
