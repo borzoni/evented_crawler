@@ -40,7 +40,7 @@ module SidekiqCrawler
       
       private
        def generate_xml(name, crawler_id)
-         SidekiqCrawler::Worker::CrawlerXMLWorker.sidekiq_options(:queue => "crawlers")
+         SidekiqCrawler::Worker::CrawlerXMLWorker.sidekiq_options(:queue => "xml")
          SidekiqCrawler::Worker::CrawlerXMLWorker.perform_async(crawler_id, name)
        end
        
