@@ -41,6 +41,7 @@ module SidekiqCrawler
         end
         raise SidekiqCrawler::CrawlerCardError.new(k,"required selector #{k} = #{text} not found", :not_found) if empty_selector?(res) and req=="true"
         next if empty_selector?(res)
+        check_field(k, res) #check types
         result[k] = res
       end
       convert_to_json(result)
@@ -53,11 +54,16 @@ module SidekiqCrawler
      @field_checker[:item_outer_category] = @field_checker[:item_sizes] = @field_checker[:item_colors] = @field_checker[:item_imgs] = @field_checker[:item_composition] = [lambda{|i| i.instance_of?(Array) and i.all?{|j| j.instance_of?(String)}}, "Array of Strings"]  
      @field_checker[:item_availability] = [lambda{|i| [true, false].include?(i)}, "Boolean"]
      @field_checker[:item_availability] = [lambda{|i| i.instance_of?(Array) and i.all?{|j| j.instance_of?(Hash)}}, "Array of Hashes"]
-    
     end
     
-    def check_field(type, item)
-        
+    def check_field(selector_key, input)
+      check = @field_checker[selector_key.to_sym]
+      return if !check
+      if check.instance_of?(Class)
+        make_type_error(selector_key, check.class, input.class)  if !input.instance_of?(check) 
+      elsif check.instance_of?(Array)
+        make_type_error(selector_key, check[1], input.class) if !(check[0].call(input))  
+      end
     end
     
     def normalize_results(input)
