@@ -53,7 +53,7 @@ module SidekiqHelper
       delete_from_queue() || delete_from_scheduled() || delete_from_running()
       time = Time.now
       while in_progress?
-       return if (Time.now - time) > 10
+       return if (Time.now - time) > 15
        next   
       end
     end
