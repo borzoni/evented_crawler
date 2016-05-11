@@ -18,13 +18,14 @@ module SidekiqCrawler
     def initialize(crawler_id, file_path, logger)
       dbconfig = YAML.load(File.read('lib/sidekiq_crawler/crawler_db.yml'))
       ActiveRecord::Base.establish_connection dbconfig
-      @file = File.new(file_path, "wb")
+      @file_path = file_path
       @logger = logger
       @crawler = Crawler.find(crawler_id)
-      @builder = Builder::XmlMarkup.new(:target => @file, :indent=>2)
     end
     
     def generate
+      return if  Item.where(:crawler_id => @crawler.id).empty?
+      prepare()
       start_time = Time.now
       @logger.info "XML generation started"
       @builder.yml_catalog(date: get_datetime(false)) do
@@ -38,6 +39,11 @@ module SidekiqCrawler
     end
     
     private
+    def prepare
+      @file = File.new(@file_path, "wb")
+      @builder = Builder::XmlMarkup.new(:target => @file, :indent=>2)
+    end
+    
     def get_datetime(unix)
       return Time.now.to_i if unix
       return Time.now.strftime("%Y-%m-%d %H:%M")

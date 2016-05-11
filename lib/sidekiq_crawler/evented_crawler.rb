@@ -98,6 +98,7 @@ module SidekiqCrawler
                 @er << r
                 @session.increment :connection_errors
                 @logger.error "#{r.conn.uri} - #{r.error}"
+                issue_connection() #just to continue the chain, there may be cases when we have links to process, but no connections awaiting
               end  
             end
             @links_found.add(url) 
