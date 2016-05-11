@@ -50,9 +50,7 @@ module SidekiqHelper
     end
     
     def stop_crawler()
-      jid = find_jid()
-      return if !jid
-      SidekiqCrawler::Worker::CrawlerInstanceWorker.cancel!(jid)
+      delete_from_queue() || delete_from_scheduled() || delete_from_running()
       time = Time.now
       while in_progress?
        return if (Time.now - time) > 10
@@ -65,6 +63,30 @@ module SidekiqHelper
     private
     def fetch_args
       @args ||= [@crawler.name, @crawler.id, @crawler.url, @crawler.selectors, @crawler.blacklist_url_patterns, @crawler.item_url_patterns, @crawler.items_threshold, @crawler.max_work_time, @crawler.min_items_parsed, @crawler.concurrency_level]
+    end
+    
+    def delete_from_queue
+      q = Sidekiq::Queue.new "crawlers"
+      return delete_from(q)
+    end
+    
+    def delete_from_scheduled
+      s = Sidekiq::ScheduledSet.new
+      return delete_from(s)
+    end
+    
+    def delete_from_running
+      jid = find_jid()
+      return false if !jid
+      SidekiqCrawler::Worker::CrawlerInstanceWorker.cancel!(jid)
+      return true
+    end
+    
+    def delete_from(source)
+      source.each do |c|
+        (c.delete and return true) if c.klass == "SidekiqCrawler::Worker::CrawlerInstanceWorker" and c.args[1] == @crawler.id
+      end
+      false
     end
     
     def find_jid
