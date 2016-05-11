@@ -18,6 +18,9 @@
         <ul class="nav navbar-nav">
           <li class="<%= 'active' if current_page?(dashboard_path) %>"><a href="/dashboard">Dashboard</a></li>
           <li class="<%= 'active' if current_page?(crawlers_path) %>"><a href="/crawlers">Crawlers</a></li>
+          <li>
+             <%= link_to "Sidekiq (#{Sidekiq::Workers.new.size}/#{Sidekiq::Queue.all.map(&:size).sum})", '/sidekiq', :class => "nav-link" %>
+          </li>
         </ul>
       </div>
    </nav>
