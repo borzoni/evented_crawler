@@ -18,6 +18,7 @@
       thead
         tr
           th Общие
+          th Цена
           th Описание
           th Размеры, цвет
           th Состав
@@ -34,8 +35,8 @@
               -if p.item_main_img  
                 br  
                   img src="#{p.item_main_img}" class="img_parsed_item"
-              br
-                = p.item_price
+            td
+              = p.item_price
             td 
               = p.item_desc.truncate(150) if p.item_desc
               br

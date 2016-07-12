@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
-  root 'crawlers#dashboard'
+  devise_for :users
+  #root 'crawlers#dashboard'
+  root 'landings#index'
   resources :crawlers do
     resources :parsed_items, :only => [:index]
   end

@@ -13,15 +13,22 @@
    <nav class="navbar navbar-default">
       <div class="container-fluid">
         <div class="navbar-header">
-          <a class="navbar-brand" href="#">ClothesCrawlers</a>
+          <a class="navbar-brand" href="#">Trendster</a>
         </div>
         <ul class="nav navbar-nav">
-          <li class="<%= 'active' if current_page?(dashboard_path) %>"><a href="/dashboard">Dashboard</a></li>
-          <li class="<%= 'active' if current_page?(crawlers_path) %>"><a href="/crawlers">Crawlers</a></li>
+          <li class="<%= 'active' if current_page?(dashboard_path) %>"><a href="/dashboard">Статистика</a></li>
+          <li class="<%= 'active' if current_page?(crawlers_path) %>"><a href="/crawlers">Магазины</a></li>
           <li>
              <%= link_to "Sidekiq (#{Sidekiq::Workers.new.size}/#{Sidekiq::Queue.all.map(&:size).sum})", '/sidekiq', :class => "nav-link" %>
           </li>
         </ul>
+        <ul class="nav pull-right">
+          <% if user_signed_in? %>
+              <li class="sign_out nav-link">
+              <%= link_to('Выйти', destroy_user_session_path, :method => :delete) %>        
+              </li>
+            <% end %>  
+         </ul>   
       </div>
    </nav>
     <%= yield %>
