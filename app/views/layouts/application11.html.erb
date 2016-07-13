@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ClothesCrawler</title>
+    <%= csrf_meta_tags %>
+    <%= action_cable_meta_tag %>
+
+    <%= stylesheet_link_tag    'application', media: 'all' %>
+    <%= javascript_include_tag 'application' %>
+  </head>
+
+  <body>
+   <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Trendster</a>
+        </div>
+        <ul class="nav navbar-nav">
+          <li class="<%= 'active' if current_page?(dashboard_path) %>"><a href="/dashboard">Статистика</a></li>
+          <li class="<%= 'active' if current_page?(crawlers_path) %>"><a href="/crawlers">Магазины</a></li>
+          <li>
+             <%= link_to "Sidekiq (#{Sidekiq::Workers.new.size}/#{Sidekiq::Queue.all.map(&:size).sum})", '/sidekiq', :class => "nav-link" %>
+          </li>
+        </ul>
+        <ul class="nav pull-right">
+          <% if user_signed_in? %>
+              <li class="sign_out nav-link">
+              <%= link_to('Выйти', destroy_user_session_path, :method => :delete) %>        
+              </li>
+            <% end %>  
+         </ul>   
+      </div>
+   </nav>
+    <%= yield %>
+  </body>
+</html>

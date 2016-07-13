@@ -1,63 +1,71 @@
-.container
-  h1 Результаты парсинга
-  h3 = "#{@parsed_items.total_entries} entries found"
-  
-  -if @stats
-     h3 Статистика
-     .row
-       .col-md-5
-          table.table.table-striped
-            tbody  
-            -@stats.each do |k,v|
+<section class="content-header">
+  <h1>
+    | Результаты парсинга
+  </h1>
+
+</section>
+
+<section class="content">
+  .container
+    h3 = "#{@parsed_items.total_entries} entries found"
+    
+    -if @stats
+       h3 Статистика
+       .row
+         .col-md-5
+            table.table.table-striped
+              tbody  
+              -@stats.each do |k,v|
+                tr
+                  td = k
+                  td = "#{v[:count]}(#{v[:percentage]}%)"
+                  td = link_to "Посмотреть пустые", crawler_parsed_items_path(@crawler,:field => k) if v[:percentage] < 100
+    - if (@parsed_items.total_entries > 0)
+      .col-sm-12
+        table.table.table-striped
+          thead
+            tr
+              th Общие
+              th Цена
+              th Описание
+              th Размеры, цвет
+              th Состав
+              th Характеристики
+              th Изображения
+              th Доступность
+          tbody
+            - @parsed_items.each do |p|
               tr
-                td = k
-                td = "#{v[:count]}(#{v[:percentage]}%)"
-                td = link_to "Посмотреть пустые", crawler_parsed_items_path(@crawler,:field => k) if v[:percentage] < 100
-  - if (@parsed_items.total_entries > 0)
-    table.table.table-striped
-      thead
-        tr
-          th Общие
-          th Цена
-          th Описание
-          th Размеры, цвет
-          th Состав
-          th Характеристики
-          th Изображения
-          th Доступность
-      tbody
-        - @parsed_items.each do |p|
-          tr
-            td 
-              a href="#{p.url}"target="_blank"  =p.item_name 
-              br
-                = p.item_brand 
-              -if p.item_main_img  
-                br  
-                  img src="#{p.item_main_img}" class="img_parsed_item"
-            td
-              = p.item_price
-            td 
-              = p.item_desc.truncate(150) if p.item_desc
-              br
-                = "Категория:  " +  p.item_outer_category.join(" | ") if p.item_outer_category
-            td 
-              =  p.item_sizes.join(", ") if p.item_sizes
-              br
-              =  p.item_sizes_scale
-              br
-              = p.item_colors.join(", ") if p.item_colors
-            td  
-              = p.item_composition.join(", ") if p.item_composition
-            td 
-              - if p.item_characteristics
-                - p.item_characteristics.each do |h|
-                  p="#{h.keys[0]}: #{h.values[0]}"
-            td 
-              -if p.item_imgs
-                - p.item_imgs.each_with_index  do |val, i|
-                  a href="#{val}" target="_blank" = i+1
-                
-            td = p.item_availability
-    = will_paginate @parsed_items, renderer: BootstrapPagination::Rails        
-                 
+                td 
+                  a href="#{p.url}"target="_blank"  =p.item_name 
+                  br
+                    = p.item_brand 
+                  -if p.item_main_img  
+                    br  
+                      img src="#{p.item_main_img}" class="img_parsed_item"
+                td
+                  = p.item_price
+                td 
+                  = p.item_desc.truncate(150) if p.item_desc
+                  br
+                    = "Категория:  " +  p.item_outer_category.join(" | ") if p.item_outer_category
+                td 
+                  =  p.item_sizes.join(", ") if p.item_sizes
+                  br
+                  =  p.item_sizes_scale
+                  br
+                  = p.item_colors.join(", ") if p.item_colors
+                td  
+                  = p.item_composition.join(", ") if p.item_composition
+                td 
+                  - if p.item_characteristics
+                    - p.item_characteristics.each do |h|
+                      p="#{h.keys[0]}: #{h.values[0]}"
+                td 
+                  -if p.item_imgs
+                    - p.item_imgs.each_with_index  do |val, i|
+                      a href="#{val}" target="_blank" = i+1
+                    
+                td = p.item_availability
+      = will_paginate @parsed_items, renderer: BootstrapPagination::Rails        
+</section>                 

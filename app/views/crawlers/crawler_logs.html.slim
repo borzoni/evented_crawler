@@ -1,31 +1,39 @@
-.container
-  h1 Логи
-  .col-md-6
-    .row
-      .col-md-2
-        = link_to "INFO", crawler_logs_path(id: @crawler.id, :level => "INFO")
-      .col-md-2 
-        = link_to "DEBUG", crawler_logs_path(id: @crawler.id, :level => "DEBUG")
-      .col-md-2
-        = link_to "ERROR", crawler_logs_path(id: @crawler.id, :level => "ERROR")
--if @logs.empty?
-  = "No logs found for #{@level} level"
-- else 
+<section class="content-header">
+  <h1>
+    | Логи для краулера 
+    = @crawler.name 
+  </h1>
+
+</section>
+
+<section class="content"> 
   .container 
-    h3 = "#{@logs.total_entries} entries found"
-    table.table.table-striped
-      thead
-        tr
-          th Ид
-          th Дата
-          th Уровень
-          th Сообщение
-      tbody
-        - @logs.each do |l|
+    .col-md-6
+      .row
+        .col-md-2
+          = link_to "INFO", crawler_logs_path(id: @crawler.id, :level => "INFO")
+        .col-md-2 
+          = link_to "DEBUG", crawler_logs_path(id: @crawler.id, :level => "DEBUG")
+        .col-md-2
+          = link_to "ERROR", crawler_logs_path(id: @crawler.id, :level => "ERROR")
+  -if @logs.empty?
+    = "No logs found for #{@level} level"
+  - else 
+    .container 
+      h3 = "#{@logs.total_entries} entries found"
+      table.table.table-striped
+        thead
           tr
-            td = l[0]
-            td = l[1]
-            td = l[2]
-            td = l[3]
-    = will_paginate @logs, :params => {id: @crawler.id, level: @level, include_upper: @include_upper}, renderer: BootstrapPagination::Rails      
-        
+            th Ид
+            th Дата
+            th Уровень
+            th Сообщение
+        tbody
+          - @logs.each do |l|
+            tr
+              td = l[0]
+              td = l[1]
+              td = l[2]
+              td = l[3]
+      = will_paginate @logs, :params => {id: @crawler.id, level: @level, include_upper: @include_upper}, renderer: BootstrapPagination::Rails      
+</section>        

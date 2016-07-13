@@ -1,5 +1,11 @@
-.container
-  h1 Статистика
+<section class="content-header">
+  <h1>
+    | Дашборд
+    <small>Статистика и ход парсингов</small>
+  </h1>
+</section>
+
+<section class="content">
   
   .panel.panel-primary.accordion
     .panel-heading
@@ -69,5 +75,5 @@
                     td= Time.at(s.start_time.to_i).strftime("%Y-%m-%d %H:%M")
                     td= Time.at(s.finish_time.to_i).strftime("%Y-%m-%d %H:%M")
                     td= s.status                 
-                  
+</section>                  
                   
