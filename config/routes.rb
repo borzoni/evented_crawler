@@ -1,6 +1,5 @@
 Rails.application.routes.draw do
   devise_for :user
-  get 'landing', to: 'devise/sessions#new'
   #root 'crawlers#dashboard'
   root 'landings#index'
   resources :crawlers do
