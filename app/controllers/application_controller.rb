@@ -22,6 +22,14 @@ class ApplicationController < ActionController::Base
   end
   helper_method :resource, :resource_name, :devise_mapping
   protected
+  private
+  def authenticate_user!
+    if user_signed_in?
+      super
+    else
+      redirect_to root_path
+    end
+  end
   def permit_recursive_params(params)
       params.map do |key, value|
         if value.is_a?(Array)

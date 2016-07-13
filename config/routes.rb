@@ -1,10 +1,12 @@
 Rails.application.routes.draw do
-  devise_for :users
+  devise_for :user
+  get 'landing', to: 'devise/sessions#new'
   #root 'crawlers#dashboard'
   root 'landings#index'
   resources :crawlers do
     resources :parsed_items, :only => [:index]
   end
+  match '/landing' => 'landings#index', :via => :get
   match "/test_selectors" => "crawlers#test_selectors", :via => :post
   match "/dashboard" => "crawlers#dashboard", :via => :get
   match "/test_url" => "crawlers#test_url", :via => :post
