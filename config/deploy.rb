@@ -13,7 +13,7 @@ require 'mina/rbenv'  # for rbenv support. (http://rbenv.org)
 set :domain, '148.251.176.26'
 set :deploy_to, '/home/projects/www/trendster/production'
 set :repository, 'git@github.com:borzoni/evented_crawler.git'
-set :branch, 'master'
+set :branch, 'admin_lte'
 
 # For system-wide RVM install.
 #   set :rvm_path, '/usr/local/rvm/bin/rvm'
